@@ -22,21 +22,6 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <link href="https://cdn.notifku.my.id/lime/theme/assets/plugins/select2/css/select2.min.css" rel="stylesheet">
-    <style>
-        .badge-select option[data-restrict="true"] {
-            background-color: #dc3545;
-            color: white;
-            padding: 0.2em 0.4em;
-            border-radius: 0.2em;
-        }
-
-        .badge-select option[data-restrict="false"] {
-            background-color: #28a745;
-            color: white;
-            padding: 0.2em 0.4em;
-            border-radius: 0.2em;
-        }
-    </style>
 
 <body>
     <div class='loader'>
@@ -66,7 +51,7 @@
                     <div class="col-xl">
                         <div class="card">
                             <div class="card-body">
-                                <h5 class="card-title"><span id="connectionStatus" class="badge"></span></h5>
+                                <h5 class="card-title"><span id="connectionStatus" class="badge">cek</span></h5>
                                 <form id="kirimPesanForm">
                                     <div class="form-group">
                                         <div class="form-group">
@@ -148,7 +133,7 @@
         }, 3000);
 
 
-        setTimeout(function () {
+        function fetchStatus() {
             $.ajax(statusSettings).done(function (response) {
                 console.log("Status API Response:", response);
                 var statusBadge = $('#connectionStatus');
@@ -171,7 +156,13 @@
                 statusBadge.text("Failed to fetch status");
                 statusBadge.removeClass().addClass('badge badge-warning');
             });
-        }, 1000); 
+        }
+
+        // Polling every second
+        setInterval(fetchStatus, 1000);
+
+        // Initial fetch
+        fetchStatus();
     </script>
     <script>
         $(document).ready(function () {
@@ -268,9 +259,12 @@
 
             $('#kirimPesanForm').on('submit', function (e) {
                 e.preventDefault();
+
                 const pengirim = $('#pengirim').val();
                 const penerima = $('#penerima').val();
-                const message = encodeURIComponent($('#message').val());
+                let message = $('#message').val();
+
+                const encodedMessage = encodeURIComponent(message.replace(/\n/g, '%0A'));
 
                 const myHeaders = new Headers();
                 myHeaders.append("Content-Type", "application/json");
