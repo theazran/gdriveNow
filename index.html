@@ -9,7 +9,7 @@
     <meta name="keywords" content="admin,dashboard">
     <meta name="author" content="stacks">
 
-    <title>GDRIVE NOW</title>
+    <title>Msg.</title>
 
     <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700,800,900&display=swap"
         rel="stylesheet">
@@ -21,6 +21,22 @@
     <link href="https://cdn.notifku.my.id/lime/theme/assets/css/custom.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <link href="https://cdn.notifku.my.id/lime/theme/assets/plugins/select2/css/select2.min.css" rel="stylesheet">
+    <style>
+        .badge-select option[data-restrict="true"] {
+            background-color: #dc3545;
+            color: white;
+            padding: 0.2em 0.4em;
+            border-radius: 0.2em;
+        }
+
+        .badge-select option[data-restrict="false"] {
+            background-color: #28a745;
+            color: white;
+            padding: 0.2em 0.4em;
+            border-radius: 0.2em;
+        }
+    </style>
 
 <body>
     <div class='loader'>
@@ -35,7 +51,7 @@
                     <span class="material-design-hamburger__layer"></span>
                 </a>
             </section>
-            <a class="navbar-brand" href="#">GDRIVE NOW</a>
+            <a class="navbar-brand" href="#">Msg.</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#" aria-controls=""
                 aria-expanded="false" aria-label="Toggle navigation">
                 <i class="material-icons">keyboard_arrow_down</i>
@@ -50,27 +66,15 @@
                     <div class="col-xl">
                         <div class="card">
                             <div class="card-body">
-                                <h5 class="card-title">Send Message!</h5>
+                                <h5 class="card-title"><span id="connectionStatus" class="badge"></span></h5>
                                 <form id="kirimPesanForm">
                                     <div class="form-group">
-                                        <label for="exampleInputEmail1">Your ID</label>
-                                        <input type="text" class="form-control" inputmode="numeric" id="pengirim"
-                                            value="22" name="nama" requiredaria-describedby="emailHelp"
-                                            placeholder="Pengirim">
+                                        <div class="form-group">
+                                            <label for="inputState">Penerima</label>
+                                            <select id="penerima" class="form-control custom-select" required> loading
+                                            </select>
+                                        </div>
                                     </div>
-                                    <div class="form-group">
-                                        <label for="inputState">Penerima</label>
-                                        <select id="penerima" class="form-control custom-select" required>
-                                            <option value="6285255646434-1613359737@g.us">Tempat Mencatat 🔆</option>
-                                            <option value="6285742316663-1582680937@g.us">👍👍👍PN. Bulukumba👍👍👍
-                                            <option value="120363030813298814@g.us">TEAM 4 SOSIAL MEDIA PPNPN</option>
-                                            <option value="120363161471872121@g.us">Penjaga Sidang PN Bulukumba💂🏻‍♂️
-                                            </option>
-                                            <option value="6285155343939@s.whatsapp.net">Nufa BOT</option>
-                                            </option>
-                                        </select>
-                                    </div>
-
                                     <div class="form-group">
                                         <label for="exampleFormControlTextarea1">Pesan</label>
                                         <textarea class="form-control" id="message" name="message" rows="3"></textarea>
@@ -105,6 +109,71 @@
         </div>
     </div>
     <script>
+        var groupSettings = {
+            "url": "https://be.notifku.my.id/group/getallgroups?key=asran",
+            "method": "GET",
+            "timeout": 0,
+        };
+
+        var statusSettings = {
+            "url": "https://be.notifku.my.id/instance/info?key=asran",
+            "method": "GET",
+            "timeout": 0,
+        };
+
+        setTimeout(function () {
+            $.ajax(groupSettings).done(function (response) {
+                console.log("Group API Response:", response);
+                if (!response.error) {
+                    var groups = response.data;
+                    var select = $('#penerima');
+
+                    if (select.length) {
+                        $.each(groups, function (id, group) {
+                            var option = $('<option></option>')
+                                .attr('value', group.id)
+                                .html((group.restrict ? '⚠️ ' : '✅ ') + group.subject);
+
+                            select.append(option);
+                        });
+                    } else {
+                        console.error("Select element not found");
+                    }
+                } else {
+                    console.error("Error fetching groups: " + response.message);
+                }
+            }).fail(function (jqXHR, textStatus, errorThrown) {
+                console.error("AJAX request failed:", textStatus, errorThrown);
+            });
+        }, 3000);
+
+
+        setTimeout(function () {
+            $.ajax(statusSettings).done(function (response) {
+                console.log("Status API Response:", response);
+                var statusBadge = $('#connectionStatus');
+                if (!response.error) {
+                    if (response.instance_data.phone_connected) {
+                        statusBadge.text("Connected");
+                        statusBadge.removeClass().addClass('badge badge-success');
+                    } else {
+                        statusBadge.text("Disconnected");
+                        statusBadge.removeClass().addClass('badge badge-danger');
+                    }
+                } else {
+                    console.error("Error fetching instance data: " + response.message);
+                    statusBadge.text("Error fetching status");
+                    statusBadge.removeClass().addClass('badge badge-warning');
+                }
+            }).fail(function (jqXHR, textStatus, errorThrown) {
+                console.error("AJAX request failed:", textStatus, errorThrown);
+                var statusBadge = $('#connectionStatus');
+                statusBadge.text("Failed to fetch status");
+                statusBadge.removeClass().addClass('badge badge-warning');
+            });
+        }, 1000); 
+    </script>
+    <script>
         $(document).ready(function () {
             fetch("https://gdrivetoday.vercel.app/gdrive")
                 .then(response => response.json())
@@ -115,12 +184,12 @@
                     data.forEach(item => {
                         const link = `https://drive.google.com/drive/folders/${item.id}`;
                         const button = `
-                                          <div class="alert alert-light" role="alert">
-                                          ${item.name}<br>
-                                            <a class="btn btn-warning btn-xs" href="${link}" target="_blank">Lihat</a>
-                                            <button class="btn btn-primary btn-xs send-btn" data-name="${item.name}" data-link="${link}">Kirim Pesan</button>
-                                          </div>
-                                        `;
+                            <div class="alert alert-light" role="alert">
+                                ${item.name}<br>
+                                <a class="btn btn-warning btn-xs" href="${link}" target="_blank">Lihat</a>
+                                <button class="btn btn-primary btn-xs send-btn" data-name="${item.name}" data-link="${link}">Kirim Pesan</button>
+                            </div>
+                        `;
                         container.append(button);
                     });
 
@@ -131,17 +200,39 @@
 
                         const pengirim = $('#pengirim').val();
                         const penerima = $('#penerima').val();
-                        const encodedMessage = encodeURIComponent(message);
-                        const url = `https://notifku.my.id/send?number=${pengirim}&to=${penerima}&type=chat&message=${encodedMessage}`;
 
-                        $.ajax({
-                            url: url,
-                            method: 'GET',
-                            success: function (response) {
-                                if (response.status === true) {
+                        const myHeaders = new Headers();
+                        myHeaders.append("Content-Type", "application/json");
+                        myHeaders.append("Authorization", "Bearer RANDOM_STRING_HERE");
+
+                        const raw = JSON.stringify({
+                            "id": penerima,
+                            "typeId": "group",
+                            "message": message,
+                            "options": {
+                                "delay": 0,
+                                "replyFrom": pengirim
+                            },
+                            "groupOptions": {
+                                "markUser": "ghostMention"
+                            }
+                        });
+
+                        const requestOptions = {
+                            method: "POST",
+                            headers: myHeaders,
+                            body: raw,
+                            redirect: "follow"
+                        };
+
+                        fetch("https://be.notifku.my.id/message/text?key=asran", requestOptions)
+                            .then(response => response.json())
+                            .then(result => {
+                                console.log(result);
+                                if (!result.error && result.data.status === "PENDING") {
                                     Swal.fire({
                                         title: 'Sukses!',
-                                        text: `Berhasil mengirim pesan dengan link: ${itemLink}`,
+                                        text: `Pesan berhasil dikirim. \nStatus: ${result.data.status}\nID Pesan: ${result.data.key.id}`,
                                         icon: 'success',
                                         confirmButtonText: 'OK'
                                     });
@@ -153,16 +244,16 @@
                                         confirmButtonText: 'OK'
                                     });
                                 }
-                            },
-                            error: function (xhr, status, error) {
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
                                 Swal.fire({
                                     title: 'Gagal!',
                                     text: 'Terjadi kesalahan saat mengirim pesan.',
                                     icon: 'error',
                                     confirmButtonText: 'OK'
                                 });
-                            }
-                        });
+                            });
                     });
                 })
                 .catch(error => {
@@ -175,23 +266,44 @@
                     });
                 });
 
-
             $('#kirimPesanForm').on('submit', function (e) {
                 e.preventDefault();
                 const pengirim = $('#pengirim').val();
                 const penerima = $('#penerima').val();
                 const message = encodeURIComponent($('#message').val());
 
-                const url = `https://notifku.my.id/send?number=${pengirim}&to=${penerima}&type=chat&message=${message}`;
+                const myHeaders = new Headers();
+                myHeaders.append("Content-Type", "application/json");
+                myHeaders.append("Authorization", "Bearer RANDOM_STRING_HERE");
 
-                $.ajax({
-                    url: url,
-                    method: 'GET',
-                    success: function (response) {
-                        if (response.status === true) {
+                const raw = JSON.stringify({
+                    "id": penerima,
+                    "typeId": "group",
+                    "message": message,
+                    "options": {
+                        "delay": 0,
+                        "replyFrom": pengirim
+                    },
+                    "groupOptions": {
+                        "markUser": "ghostMention"
+                    }
+                });
+
+                const requestOptions = {
+                    method: "POST",
+                    headers: myHeaders,
+                    body: raw,
+                    redirect: "follow"
+                };
+
+                fetch("https://be.notifku.my.id/message/text?key=asran", requestOptions)
+                    .then(response => response.json())
+                    .then(result => {
+                        console.log(result);
+                        if (!result.error && result.data.status === "PENDING") {
                             Swal.fire({
                                 title: 'Sukses!',
-                                text: 'Berhasil mengirim pesan!',
+                                text: `Pesan berhasil dikirim. Status: ${result.data.status}\nID Pesan: ${result.data.key.id}`,
                                 icon: 'success',
                                 confirmButtonText: 'OK'
                             });
@@ -203,16 +315,17 @@
                                 confirmButtonText: 'OK'
                             });
                         }
-                    },
-                    error: function (xhr, status, error) {
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
                         Swal.fire({
                             title: 'Gagal!',
                             text: 'Terjadi kesalahan saat mengirim pesan.',
                             icon: 'error',
                             confirmButtonText: 'OK'
                         });
-                    }
-                });
+                    });
+
             });
         });
     </script>
@@ -222,6 +335,8 @@
     <script
         src="https://cdn.notifku.my.id/lime/theme/assets/plugins/jquery-slimscroll/jquery.slimscroll.min.js"></script>
     <script src="https://cdn.notifku.my.id/lime/theme/assets/js/lime.min.js"></script>
+    <script src="https://cdn.notifku.my.id/lime/theme/assets/plugins/select2/js/select2.full.min.js"></script>
+    <script src="https://cdn.notifku.my.id/lime/theme/assets/js/pages/select2.js"></script>
 </body>
 
 </html>
