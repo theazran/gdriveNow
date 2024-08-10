@@ -48,7 +48,7 @@
             <div class="container">
 
                 <div class="row">
-                    <div class="col-xl">
+                    <div class="col-md-4">
                         <div class="card">
                             <div class="card-body">
                                 <h5 class="card-title"><span id="connectionStatus" class="badge">cek</span></h5>
@@ -69,17 +69,28 @@
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="row">
-                    <div class="col-xl">
+                    <div class="col-md-8">
                         <div class="card">
                             <div class="card-body">
                                 <h5 class="card-title">Google Drive Hari Ini</h5>
                                 <div id="gdriveData" class="mt-3"></div>
+                                <hr>
+                                <div class="row">
+                                    <div class="storage-info">
+                                        <span class="storage-info-title">Storage</span>
+                                        <span id="storageText" class="storage-info-text">Loading...</span>
+                                        <div class="progress m-b-sm">
+                                            <div id="storageProgress" class="progress-bar bg-info" role="progressbar"
+                                                style="width: 0%;" aria-valuenow="0" aria-valuemin="0"
+                                                aria-valuemax="100"></div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
@@ -93,6 +104,27 @@
             </div>
         </div>
     </div>
+    <script>
+        $(document).ready(function () {
+            fetch('https://gdrivetoday.vercel.app/gdrive/info')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('API Response:', data);
+
+                    const totalStorage = parseFloat(data.totalStorageGB);
+                    const usedStorage = parseFloat(data.usedStorageGB);
+
+                    const usedPercentage = (usedStorage / totalStorage) * 100;
+
+                    $('#storageText').text(`${usedStorage}GB used of ${totalStorage}GB`);
+                    $('#storageProgress').css('width', `${usedPercentage}%`).attr('aria-valuenow', usedPercentage);
+                })
+                .catch(error => {
+                    console.error('Error fetching Google Drive info:', error);
+                    $('#storageText').text('Error loading storage info.');
+                });
+        });
+    </script>
     <script>
         var groupSettings = {
             "url": "https://be.notifku.my.id/group/getallgroups?key=asran",
@@ -157,11 +189,7 @@
                 statusBadge.removeClass().addClass('badge badge-warning');
             });
         }
-
-        // Polling every second
         setInterval(fetchStatus, 1000);
-
-        // Initial fetch
         fetchStatus();
     </script>
     <script>
@@ -205,7 +233,7 @@
                                 "replyFrom": pengirim
                             },
                             "groupOptions": {
-                                "markUser": "ghostMention"
+                                "markUser": ""
                             }
                         });
 
@@ -279,7 +307,7 @@
                         "replyFrom": pengirim
                     },
                     "groupOptions": {
-                        "markUser": "ghostMention"
+                        "markUser": ""
                     }
                 });
 
@@ -331,6 +359,9 @@
     <script src="https://cdn.notifku.my.id/lime/theme/assets/js/lime.min.js"></script>
     <script src="https://cdn.notifku.my.id/lime/theme/assets/plugins/select2/js/select2.full.min.js"></script>
     <script src="https://cdn.notifku.my.id/lime/theme/assets/js/pages/select2.js"></script>
+
+    <script src="https://cdn.notifku.my.id/lime/theme/assets/plugins/chartjs/chart.min.js"></script>
+    <script src="https://cdn.notifku.my.id/lime/theme/assets/plugins/apexcharts/dist/apexcharts.min.js"></script>
 </body>
 
 </html>
