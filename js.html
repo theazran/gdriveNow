@@ -236,7 +236,7 @@
 
             const today = new Date();
             const formattedDate = `${(today.getDate() < 10 ? '0' : '') + today.getDate()}-${(today.getMonth() + 1 < 10 ? '0' : '') + (today.getMonth() + 1)}-${today.getFullYear()}`;
-            doc.save(`jadwal_sidang_pidana_${formattedDate}.pdf`);
+            doc.save(`jadwal_sidang_pidana.pdf`);
         }
 
         function exportPDFPerdata() {
@@ -255,7 +255,7 @@
 
             const today = new Date();
             const formattedDate = `${(today.getDate() < 10 ? '0' : '') + today.getDate()}-${(today.getMonth() + 1 < 10 ? '0' : '') + (today.getMonth() + 1)}-${today.getFullYear()}`;
-            doc.save(`jadwal_sidang_perdata_${formattedDate}.pdf`);
+            doc.save(`jadwal_sidang_perdata.pdf`);
         }
 
         function exportPDF() {
