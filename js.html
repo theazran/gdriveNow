@@ -48,7 +48,7 @@
                     <span class="material-design-hamburger__layer"></span>
                 </a>
             </section>
-            <a class="navbar-brand" href="#">Msg.</a>
+            <a class="navbar-brand" href="#">Jadwal Sidang</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#" aria-controls=""
                 aria-expanded="false" aria-label="Toggle navigation">
                 <i class="material-icons">keyboard_arrow_down</i>
@@ -114,7 +114,6 @@
                                 </div>
                             </div>
                         </div>
-
                         <div class="row">
                             <div class="col-xl">
                                 <div class="card">
@@ -181,19 +180,19 @@
 
                 data.pidana.forEach((item, index) => {
                     const row = `
-                                         <tr>
-                                             <td>${index + 1}</td>
-                                             <td>${selectedDate}</td>
-                                             <td>${item.noPerkara}</td>
-                                             <td>${item.ruangSidang}</td>
-                                             <td>${item.agendaSidang}</td>
-                                             <td>${item.pihak1}</td>
-                                             <td>${item.pihak2 || '-'}</td>
-                                             <td>${item.namaHakim.replace(/\n/g, '<br>')}</td>
-                                             <td>${item.namaPanitera}</td>
-                                             <td></td>
-                                         </tr>
-                                     `;
+                                 <tr>
+                                     <td>${index + 1}</td>
+                                     <td>${selectedDate}</td>
+                                     <td>${item.noPerkara}</td>
+                                     <td>${item.ruangSidang}</td>
+                                     <td>${item.agendaSidang}</td>
+                                     <td>${item.pihak1}</td>
+                                     <td>${item.pihak2 || '-'}</td>
+                                     <td>${item.namaHakim.replace(/\n/g, '<br>')}</td>
+                                     <td>${item.namaPanitera}</td>
+                                     <td></td>
+                                 </tr>
+                             `;
                     pidanaTableBody.insertAdjacentHTML('beforeend', row);
                 });
 
