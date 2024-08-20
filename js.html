@@ -222,6 +222,14 @@
 
         function exportPDFPidana() {
             const {jsPDF} = window.jspdf;
+            const columnStyles = {
+                4: {cellWidth: 120},
+                7: {cellWidth: 150},
+            };
+            const headStyles = {
+                fillColor: [225, 57, 57],
+                textColor: [255, 255, 255],
+            };
             const doc = new jsPDF('landscape', 'pt', 'legal');
 
             doc.setFontSize(18);
@@ -231,16 +239,28 @@
                 html: '#jadwalTablePidana',
                 startY: 60,
                 theme: 'grid',
-                styles: {fontSize: 10}
+                styles: {fontSize: 10, lineWidth: 0.75},
+                columnStyles: columnStyles,
+                headStyles: headStyles
             });
 
             const today = new Date();
             const formattedDate = `${(today.getDate() < 10 ? '0' : '') + today.getDate()}-${(today.getMonth() + 1 < 10 ? '0' : '') + (today.getMonth() + 1)}-${today.getFullYear()}`;
-            doc.save(`jadwal_sidang_pidana.pdf`);
+            doc.save(`jadwal_sidang_pidana_${formattedDate}.pdf`);
         }
 
         function exportPDFPerdata() {
             const {jsPDF} = window.jspdf;
+            const columnStyles = {
+                4: {cellWidth: 120},
+                7: {cellWidth: 150},
+            };
+
+            const headStyles = {
+                fillColor: [109, 235, 104],
+                textColor: [0, 0, 0],
+            };
+
             const doc = new jsPDF('landscape', 'pt', 'legal');
 
             doc.setFontSize(18);
@@ -250,12 +270,14 @@
                 html: '#jadwalTablePerdata',
                 startY: 60,
                 theme: 'grid',
-                styles: {fontSize: 10}
+                styles: {fontSize: 10, lineWidth: 0.75},
+                columnStyles: columnStyles,
+                headStyles: headStyles
             });
 
             const today = new Date();
             const formattedDate = `${(today.getDate() < 10 ? '0' : '') + today.getDate()}-${(today.getMonth() + 1 < 10 ? '0' : '') + (today.getMonth() + 1)}-${today.getFullYear()}`;
-            doc.save(`jadwal_sidang_perdata.pdf`);
+            doc.save(`jadwal_sidang_perdata_${formattedDate}.pdf`);
         }
 
         function exportPDF() {
