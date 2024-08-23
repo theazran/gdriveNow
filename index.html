@@ -215,13 +215,36 @@
                     data.forEach(item => {
                         const link = `https://drive.google.com/drive/folders/${item.id}`;
                         const button = `
-                            <div class="alert alert-light" role="alert">
-                                ${item.name}<br>
-                                <a class="btn btn-warning btn-xs" href="${link}" target="_blank">Lihat</a>
-                                <button class="btn btn-primary btn-xs send-btn" data-name="${item.name}" data-link="${link}">Kirim Pesan</button>
-                            </div>
-                        `;
+                <div class="alert alert-light" role="alert">
+                  <strong>${item.name}</strong><br>
+                  <span><a class="btn btn-warning btn-xs" href="${link}" target="_blank">Lihat</a></span>
+                  <button class="btn btn-primary btn-xs send-btn" data-name="${item.name}" data-link="${link}">Kirim Pesan</button>
+                  <button class="btn btn-secondary btn-xs copy-btn" data-name="${item.name}" data-link="${link}">Copy</button>
+                </div>
+              `;
                         container.append(button);
+                    });
+
+                    $('.copy-btn').on('click', function () {
+                        const name = $(this).data('name');
+                        const link = $(this).data('link');
+                        const textToCopy = `\`${name}\`\n${link}`;
+
+                        navigator.clipboard.writeText(textToCopy).then(() => {
+                            Swal.fire({
+                                title: 'Copied!',
+                                text: 'Nama folder dan link berhasil disalin ke clipboard.',
+                                icon: 'success',
+                                confirmButtonText: 'OK'
+                            });
+                        }).catch(err => {
+                            Swal.fire({
+                                title: 'Gagal!',
+                                text: 'Tidak dapat menyalin link.',
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                        });
                     });
 
                     $('.send-btn').on('click', function () {
@@ -259,7 +282,6 @@
                         fetch("https://be.notifku.my.id/message/text?key=asran", requestOptions)
                             .then(response => response.json())
                             .then(result => {
-                                console.log(result);
                                 if (!result.error && result.data.status === "PENDING") {
                                     Swal.fire({
                                         title: 'Sukses!',
@@ -304,8 +326,6 @@
                 const penerima = $('#penerima').val();
                 let message = $('#message').val();
 
-                const encodedMessage = encodeURIComponent(message.replace(/\n/g, '%0A'));
-
                 const myHeaders = new Headers();
                 myHeaders.append("Content-Type", "application/json");
                 myHeaders.append("Authorization", "Bearer RANDOM_STRING_HERE");
@@ -333,7 +353,6 @@
                 fetch("https://be.notifku.my.id/message/text?key=asran", requestOptions)
                     .then(response => response.json())
                     .then(result => {
-                        console.log(result);
                         if (!result.error && result.data.status === "PENDING") {
                             Swal.fire({
                                 title: 'Sukses!',
@@ -359,10 +378,10 @@
                             confirmButtonText: 'OK'
                         });
                     });
-
             });
         });
     </script>
+
     <script src="https://cdn.notifku.my.id/lime/theme/assets/plugins/jquery/jquery-3.1.0.min.js"></script>
     <script src="https://cdn.notifku.my.id/lime/theme/assets/plugins/bootstrap/popper.min.js"></script>
     <script src="https://cdn.notifku.my.id/lime/theme/assets/plugins/bootstrap/js/bootstrap.min.js"></script>
