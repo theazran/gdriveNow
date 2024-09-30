@@ -139,13 +139,13 @@
     </script>
     <script>
         var groupSettings = {
-            "url": "https://be.notifku.my.id/group/getallgroups?key=asran",
+            "url": "https://wa.panelpn.my.id/group/getallgroups?key=asran",
             "method": "GET",
             "timeout": 0,
         };
 
         var statusSettings = {
-            "url": "https://be.notifku.my.id/instance/info?key=asran",
+            "url": "https://wa.panelpn.id/instance/info?key=asran",
             "method": "GET",
             "timeout": 0,
         };
@@ -279,7 +279,7 @@
                             redirect: "follow"
                         };
 
-                        fetch("https://be.notifku.my.id/message/text?key=asran", requestOptions)
+                        fetch("https://wa.panelpn.my.id/message/text?key=asran", requestOptions)
                             .then(response => response.json())
                             .then(result => {
                                 if (!result.error && result.data.status === "PENDING") {
@@ -350,7 +350,7 @@
                     redirect: "follow"
                 };
 
-                fetch("https://be.notifku.my.id/message/text?key=asran", requestOptions)
+                fetch("https://wa.panelpn.my.id/message/text?key=asran", requestOptions)
                     .then(response => response.json())
                     .then(result => {
                         if (!result.error && result.data.status === "PENDING") {
