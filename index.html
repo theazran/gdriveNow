@@ -380,6 +380,20 @@
                     });
             });
         });
+
+        var settings = {
+  "url": "https://wa.panelpn.my.id/group/getallgroups?key=123",
+  "method": "GET",
+  "timeout": 0,
+  "headers": {
+    "Authorization": "Bearer YOUR_TOKEN",
+    "Cookie": "connect.sid=s%3AULopdcBcib9ppX9igKCkL9xc27_W864V.8SNRMbJ4hdWLMYHBKuclSKYycIpwDPR8046J4Vaygvg"
+  },
+};
+
+$.ajax(settings).done(function (response) {
+  console.log(response);
+});
     </script>
 
     <script src="https://cdn.notifku.my.id/lime/theme/assets/plugins/jquery/jquery-3.1.0.min.js"></script>
