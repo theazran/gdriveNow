@@ -138,7 +138,7 @@
         });
     </script>
     <script>
-        var token = "YOUR_TOKEN"; // Replace with actual token
+        var token = "YOUR_TOKEN"; 
     
         // Group settings
         var groupSettings = {
@@ -146,8 +146,7 @@
             "method": "GET",
             "timeout": 0,
             "headers": {
-                "Authorization": "Bearer " + token,
-                "Cookie": "connect.sid=s%3AULopdcBcib9ppX9igKCkL9xc27_W864V.8SNRMbJ4hdWLMYHBKuclSKYycIpwDPR8046J4Vaygvg"
+                "Authorization": "Bearer " + token
             }
         };
     
@@ -158,71 +157,37 @@
             "timeout": 0,
             "headers": {
                 "Authorization": "Bearer " + token,
-                "Cookie": "connect.sid=s%3AULopdcBcib9ppX9igKCkL9xc27_W864V.8SNRMbJ4hdWLMYHBKuclSKYycIpwDPR8046J4Vaygvg"
+               
             }
         };
     
-        // Debug token and API call
-console.log("Using token: ", token);
-
-// Group fetch
-function fetchGroups() {
-    console.log("Fetching groups...");
-    $.ajax(groupSettings)
-        .done(function (response) {
-            console.log("Group API Response:", response); // Check the response format
-            if (!response.error) {
-                const select = $('#penerima');
-                select.empty(); // Clear previous options
-
-                const groupData = response.data; // Group data object
-                for (const groupId in groupData) {
-                    if (groupData.hasOwnProperty(groupId)) {
-                        const group = groupData[groupId];
-                        const option = $('<option></option>')
-                            .attr('value', group.id)
-                            .html((group.restrict ? '⚠️ ' : '✅ ') + group.subject);
-                        select.append(option);
+        // Function to fetch and display groups
+        function fetchGroups() {
+            $.ajax(groupSettings)
+                .done(function (response) {
+                    if (!response.error) {
+                        const select = $('#penerima');
+                        select.empty(); // Clear previous options
+    
+                        const groupData = response.data; // Group data object
+                        for (const groupId in groupData) {
+                            if (groupData.hasOwnProperty(groupId)) {
+                                const group = groupData[groupId];
+                                const option = $('<option></option>')
+                                    .attr('value', group.id)
+                                    .html((group.restrict ? '⚠️ ' : '✅ ') + group.subject);
+                                select.append(option);
+                            }
+                        }
+                    } else {
+                        console.error("Error fetching groups:", response.message);
                     }
-                }
-            } else {
-                console.error("Error fetching groups:", response.message);
-            }
-        })
-        .fail(function (jqXHR, textStatus, errorThrown) {
-            console.error("Failed to fetch groups:", textStatus, errorThrown);
-        });
-}
-
-// Status fetch
-function fetchStatus() {
-    console.log("Fetching status...");
-    $.ajax(statusSettings)
-        .done(function (response) {
-            console.log("Status API Response:", response); // Check status response
-            var statusBadge = $('#connectionStatus');
-            if (!response.error) {
-                if (response.instance_data.phone_connected) {
-                    statusBadge.text("Connected");
-                    statusBadge.removeClass().addClass('badge badge-success');
-                } else {
-                    statusBadge.text("Disconnected");
-                    statusBadge.removeClass().addClass('badge badge-danger');
-                }
-            } else {
-                console.error("Error fetching instance data: " + response.message);
-                statusBadge.text("Error fetching status");
-                statusBadge.removeClass().addClass('badge badge-warning');
-            }
-        })
-        .fail(function (jqXHR, textStatus, errorThrown) {
-            console.error("AJAX request failed:", textStatus, errorThrown);
-            var statusBadge = $('#connectionStatus');
-            statusBadge.text("Failed to fetch status");
-            statusBadge.removeClass().addClass('badge badge-warning');
-        });
-}
-
+                })
+                .fail(function (jqXHR, textStatus, errorThrown) {
+                    console.error("Failed to fetch groups:", textStatus, errorThrown);
+                });
+        }
+    
         // Function to fetch and display status
         function fetchStatus() {
             $.ajax(statusSettings)
@@ -440,6 +405,23 @@ function fetchStatus() {
 
         });
 
+        var settings = {
+  "url": "https://wa.panelpn.my.id/group/getallgroups?key=123", // Ensure this URL is correct
+  "method": "GET",
+  "timeout": 0,
+  "headers": {
+    "Authorization": "Bearer YOUR_TOKEN", // Replace with actual token
+    "Cookie": "connect.sid=s%3AULopdcBcib9ppX9igKCkL9xc27_W864V.8SNRMbJ4hdWLMYHBKuclSKYycIpwDPR8046J4Vaygvg" // Replace if needed
+  },
+};
+
+$.ajax(settings)
+  .done(function (response) {
+    console.log("Success:", response);  // Log success response
+  })
+  .fail(function (jqXHR, textStatus, errorThrown) {
+    console.error("Request failed:", textStatus, errorThrown);  // Log error if request fails
+  });
     </script>
 
     <script src="https://cdn.notifku.my.id/lime/theme/assets/plugins/jquery/jquery-3.1.0.min.js"></script>
