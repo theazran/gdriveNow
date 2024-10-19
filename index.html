@@ -319,66 +319,72 @@
                     });
                 });
 
-            $('#kirimPesanForm').on('submit', function (e) {
-                e.preventDefault();
+                $('#kirimPesanForm').on('submit', function (e) {
+  e.preventDefault();
 
-                const pengirim = $('#pengirim').val();
-                const penerima = $('#penerima').val();
-                let message = $('#message').val();
+  const pengirim = $('#pengirim').val();
+  const penerima = $('#penerima').val();
+  const message = $('#message').val();
 
-                const myHeaders = new Headers();
-                myHeaders.append("Content-Type", "application/json");
-                myHeaders.append("Authorization", "Bearer YOUR_TOKEN");
+  if (!message || !penerima) {
+    Swal.fire({
+      title: 'Error',
+      text: 'Please enter both a message and select a recipient.',
+      icon: 'warning',
+      confirmButtonText: 'OK'
+    });
+    return;
+  }
 
-                const raw = JSON.stringify({
-                    "id": penerima,
-                    "typeId": "group",
-                    "message": message,
-                    "options": {
-                        "delay": 0,
-                        "replyFrom": pengirim
-                    },
-                    "groupOptions": {
-                        "markUser": ""
-                    }
-                });
+  const myHeaders = new Headers();
+  myHeaders.append("Content-Type", "application/json");
+  myHeaders.append("Authorization", "Bearer YOUR_TOKEN");
 
-                const requestOptions = {
-                    method: "POST",
-                    headers: myHeaders,
-                    body: raw,
-                    redirect: "follow"
-                };
+  const raw = JSON.stringify({
+    "id": penerima,
+    "typeId": "group",
+    "message": message,
+    "options": { "delay": 0, "replyFrom": pengirim },
+    "groupOptions": { "markUser": "" }
+  });
 
-                fetch("http://wa.panelpn.my.id/message/text?key=123", requestOptions)
-                    .then(response => response.json())
-                    .then(result => {
-                        if (!result.error && result.data.status === "PENDING") {
-                            Swal.fire({
-                                title: 'Sukses!',
-                                text: `Pesan berhasil dikirim. Status: ${result.data.status}\nID Pesan: ${result.data.key.id}`,
-                                icon: 'success',
-                                confirmButtonText: 'OK'
-                            });
-                        } else {
-                            Swal.fire({
-                                title: 'Gagal!',
-                                text: 'Pesan gagal dikirim.',
-                                icon: 'error',
-                                confirmButtonText: 'OK'
-                            });
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        Swal.fire({
-                            title: 'Gagal!',
-                            text: 'Terjadi kesalahan saat mengirim pesan.',
-                            icon: 'error',
-                            confirmButtonText: 'OK'
-                        });
-                    });
-            });
+  const requestOptions = {
+    method: "POST",
+    headers: myHeaders,
+    body: raw,
+    redirect: "follow"
+  };
+
+  fetch("http://wa.panelpn.my.id/message/text?key=123", requestOptions)
+    .then(response => response.json())
+    .then(result => {
+      if (!result.error && result.data.status === "PENDING") {
+        Swal.fire({
+          title: 'Success!',
+          text: `Message sent successfully. Status: ${result.data.status}\nMessage ID: ${result.data.key.id}`,
+          icon: 'success',
+          confirmButtonText: 'OK'
+        });
+      } else {
+        Swal.fire({
+          title: 'Failed!',
+          text: 'Message failed to send.',
+          icon: 'error',
+          confirmButtonText: 'OK'
+        });
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      Swal.fire({
+        title: 'Error!',
+        text: 'An error occurred while sending the message.',
+        icon: 'error',
+        confirmButtonText: 'OK'
+      });
+    });
+});
+
         });
 
         var settings = {
