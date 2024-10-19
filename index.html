@@ -150,31 +150,29 @@
             "timeout": 0,
         };
 
-        setTimeout(function () {
-            $.ajax(groupSettings).done(function (response) {
-                console.log("Group API Response:", response);
-                if (!response.error) {
-                    var groups = response.data;
-                    var select = $('#penerima');
+        function fetchGroups() {
+  $.ajax(groupSettings)
+    .done(function (response) {
+      if (!response.error) {
+        const select = $('#penerima');
+        select.empty(); // Clear previous options
 
-                    if (select.length) {
-                        $.each(groups, function (id, group) {
-                            var option = $('<option></option>')
-                                .attr('value', group.id)
-                                .html((group.restrict ? '⚠️ ' : '✅ ') + group.subject);
+        response.data.forEach(group => {
+          const option = $('<option></option>')
+            .attr('value', group.id)
+            .html((group.restrict ? '⚠️ ' : '✅ ') + group.subject);
+          select.append(option);
+        });
+      } else {
+        console.error("Error fetching groups:", response.message);
+      }
+    })
+    .fail(function (jqXHR, textStatus, errorThrown) {
+      console.error("Failed to fetch groups:", textStatus, errorThrown);
+    });
+}
 
-                            select.append(option);
-                        });
-                    } else {
-                        console.error("Select element not found");
-                    }
-                } else {
-                    console.error("Error fetching groups: " + response.message);
-                }
-            }).fail(function (jqXHR, textStatus, errorThrown) {
-                console.error("AJAX request failed:", textStatus, errorThrown);
-            });
-        }, 3000);
+setTimeout(fetchGroups, 3000);
 
 
         function fetchStatus() {
