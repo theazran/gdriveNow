@@ -188,33 +188,34 @@
                 });
         }
     
-        // Function to fetch and display status
         function fetchStatus() {
-            $.ajax(statusSettings)
-                .done(function (response) {
-                    console.log("Status API Response:", response);
-                    var statusBadge = $('#connectionStatus');
-                    if (!response.error) {
-                        if (response.instance_data.phone_connected) {
-                            statusBadge.text("Connected");
-                            statusBadge.removeClass().addClass('badge badge-success');
-                        } else {
-                            statusBadge.text("Disconnected");
-                            statusBadge.removeClass().addClass('badge badge-danger');
-                        }
-                    } else {
-                        console.error("Error fetching instance data: " + response.message);
-                        statusBadge.text("Error fetching status");
-                        statusBadge.removeClass().addClass('badge badge-warning');
-                    }
-                })
-                .fail(function (jqXHR, textStatus, errorThrown) {
-                    console.error("AJAX request failed:", textStatus, errorThrown);
-                    var statusBadge = $('#connectionStatus');
-                    statusBadge.text("Failed to fetch status");
-                    statusBadge.removeClass().addClass('badge badge-warning');
-                });
-        }
+    $.ajax(statusSettings)
+        .done(function (response) {
+            console.log("Status API Response:", response);
+            var statusBadge = $('#connectionStatus');
+            if (!response.error) {
+                if (response.instance_data.phone_connected) {
+                    statusBadge.text("Connected");
+                    statusBadge.removeClass().addClass('badge badge-success');
+                } else {
+                    statusBadge.text("Disconnected");
+                    statusBadge.removeClass().addClass('badge badge-danger');
+                }
+            } else {
+                console.error("Error fetching instance data: " + response.message);
+                statusBadge.text("Error fetching status");
+                statusBadge.removeClass().addClass('badge badge-warning');
+            }
+        })
+        .fail(function (jqXHR, textStatus, errorThrown) {
+            console.error("AJAX request failed:", textStatus, errorThrown);
+            console.error("Status Code: ", jqXHR.status);
+            console.error("Response Text: ", jqXHR.responseText);
+            var statusBadge = $('#connectionStatus');
+            statusBadge.text("Failed to fetch status");
+            statusBadge.removeClass().addClass('badge badge-warning');
+        });
+}
     
         // Initial fetch of groups and status
         setTimeout(fetchGroups, 3000); // Fetch groups after 3 seconds
