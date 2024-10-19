@@ -138,69 +138,84 @@
         });
     </script>
     <script>
+        var token = "YOUR_TOKEN"; // Replace with actual token
+    
         var groupSettings = {
             "url": "http://wa.panelpn.my.id/group/getallgroups?key=123",
             "method": "GET",
             "timeout": 0,
+            "headers": {
+                "Authorization": "Bearer " + token,
+                "Cookie": "connect.sid=s%3AULopdcBcib9ppX9igKCkL9xc27_W864V.8SNRMbJ4hdWLMYHBKuclSKYycIpwDPR8046J4Vaygvg"
+            }
         };
-
+    
         var statusSettings = {
             "url": "http://wa.panelpn.my.id/instance/info?key=123",
             "method": "GET",
             "timeout": 0,
+            "headers": {
+                "Authorization": "Bearer " + token,
+                "Cookie": "connect.sid=s%3AULopdcBcib9ppX9igKCkL9xc27_W864V.8SNRMbJ4hdWLMYHBKuclSKYycIpwDPR8046J4Vaygvg"
+            }
         };
-
+    
+        // Fetch groups function
         function fetchGroups() {
-  $.ajax(groupSettings)
-    .done(function (response) {
-      if (!response.error) {
-        const select = $('#penerima');
-        select.empty(); // Clear previous options
-
-        response.data.forEach(group => {
-          const option = $('<option></option>')
-            .attr('value', group.id)
-            .html((group.restrict ? '⚠️ ' : '✅ ') + group.subject);
-          select.append(option);
-        });
-      } else {
-        console.error("Error fetching groups:", response.message);
-      }
-    })
-    .fail(function (jqXHR, textStatus, errorThrown) {
-      console.error("Failed to fetch groups:", textStatus, errorThrown);
-    });
-}
-
-setTimeout(fetchGroups, 3000);
-
-
-        function fetchStatus() {
-            $.ajax(statusSettings).done(function (response) {
-                console.log("Status API Response:", response);
-                var statusBadge = $('#connectionStatus');
-                if (!response.error) {
-                    if (response.instance_data.phone_connected) {
-                        statusBadge.text("Connected");
-                        statusBadge.removeClass().addClass('badge badge-success');
+            $.ajax(groupSettings)
+                .done(function (response) {
+                    if (!response.error) {
+                        const select = $('#penerima');
+                        select.empty(); // Clear previous options
+    
+                        response.data.forEach(group => {
+                            const option = $('<option></option>')
+                                .attr('value', group.id)
+                                .html((group.restrict ? '⚠️ ' : '✅ ') + group.subject);
+                            select.append(option);
+                        });
                     } else {
-                        statusBadge.text("Disconnected");
-                        statusBadge.removeClass().addClass('badge badge-danger');
+                        console.error("Error fetching groups:", response.message);
                     }
-                } else {
-                    console.error("Error fetching instance data: " + response.message);
-                    statusBadge.text("Error fetching status");
-                    statusBadge.removeClass().addClass('badge badge-warning');
-                }
-            }).fail(function (jqXHR, textStatus, errorThrown) {
-                console.error("AJAX request failed:", textStatus, errorThrown);
-                var statusBadge = $('#connectionStatus');
-                statusBadge.text("Failed to fetch status");
-                statusBadge.removeClass().addClass('badge badge-warning');
-            });
+                })
+                .fail(function (jqXHR, textStatus, errorThrown) {
+                    console.error("Failed to fetch groups:", textStatus, errorThrown);
+                });
         }
+    
+        setTimeout(fetchGroups, 3000); // Fetch groups after 3 seconds
+    
+        // Fetch status function
+        function fetchStatus() {
+            $.ajax(statusSettings)
+                .done(function (response) {
+                    console.log("Status API Response:", response);
+                    var statusBadge = $('#connectionStatus');
+                    if (!response.error) {
+                        if (response.instance_data.phone_connected) {
+                            statusBadge.text("Connected");
+                            statusBadge.removeClass().addClass('badge badge-success');
+                        } else {
+                            statusBadge.text("Disconnected");
+                            statusBadge.removeClass().addClass('badge badge-danger');
+                        }
+                    } else {
+                        console.error("Error fetching instance data: " + response.message);
+                        statusBadge.text("Error fetching status");
+                        statusBadge.removeClass().addClass('badge badge-warning');
+                    }
+                })
+                .fail(function (jqXHR, textStatus, errorThrown) {
+                    console.error("AJAX request failed:", textStatus, errorThrown);
+                    var statusBadge = $('#connectionStatus');
+                    statusBadge.text("Failed to fetch status");
+                    statusBadge.removeClass().addClass('badge badge-warning');
+                });
+        }
+    
+        // Check status every 1 second
         setInterval(fetchStatus, 1000);
-        fetchStatus();
+        fetchStatus(); // Initial status fetch
     </script>
     <script>
         $(document).ready(function () {
