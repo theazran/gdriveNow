@@ -140,6 +140,7 @@
     <script>
         var token = "YOUR_TOKEN"; // Replace with actual token
     
+        // Group settings
         var groupSettings = {
             "url": "http://wa.panelpn.my.id/group/getallgroups?key=123",
             "method": "GET",
@@ -150,6 +151,7 @@
             }
         };
     
+        // Status settings
         var statusSettings = {
             "url": "http://wa.panelpn.my.id/instance/info?key=123",
             "method": "GET",
@@ -160,7 +162,7 @@
             }
         };
     
-        // Fetch groups function
+        // Function to fetch and display groups
         function fetchGroups() {
             $.ajax(groupSettings)
                 .done(function (response) {
@@ -168,12 +170,16 @@
                         const select = $('#penerima');
                         select.empty(); // Clear previous options
     
-                        response.data.forEach(group => {
-                            const option = $('<option></option>')
-                                .attr('value', group.id)
-                                .html((group.restrict ? '⚠️ ' : '✅ ') + group.subject);
-                            select.append(option);
-                        });
+                        const groupData = response.data; // Group data object
+                        for (const groupId in groupData) {
+                            if (groupData.hasOwnProperty(groupId)) {
+                                const group = groupData[groupId];
+                                const option = $('<option></option>')
+                                    .attr('value', group.id)
+                                    .html((group.restrict ? '⚠️ ' : '✅ ') + group.subject);
+                                select.append(option);
+                            }
+                        }
                     } else {
                         console.error("Error fetching groups:", response.message);
                     }
@@ -183,9 +189,7 @@
                 });
         }
     
-        setTimeout(fetchGroups, 3000); // Fetch groups after 3 seconds
-    
-        // Fetch status function
+        // Function to fetch and display status
         function fetchStatus() {
             $.ajax(statusSettings)
                 .done(function (response) {
@@ -213,10 +217,12 @@
                 });
         }
     
-        // Check status every 1 second
-        setInterval(fetchStatus, 1000);
+        // Initial fetch of groups and status
+        setTimeout(fetchGroups, 3000); // Fetch groups after 3 seconds
+        setInterval(fetchStatus, 1000); // Check status every 1 second
         fetchStatus(); // Initial status fetch
     </script>
+    
     <script>
         $(document).ready(function () {
             fetch("https://gdrivetoday.vercel.app/gdrive")
