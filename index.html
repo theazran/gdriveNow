@@ -144,7 +144,7 @@
     
         // Group settings
         var groupSettings = {
-            "url": "http://wa.panelpn.my.id/group/getallgroups?key=123",
+            "url": "http://wa.pnblk.my.id/group/getallgroups?key=andalan",
             "method": "GET",
             "timeout": 0,
             "headers": {
@@ -154,7 +154,7 @@
     
         // Status settings
         var statusSettings = {
-            "url": "http://wa.panelpn.my.id/instance/info?key=123",
+            "url": "http://wa.pnblk.my.id/instance/info?key=andalan",
             "method": "GET",
             "timeout": 0,
             "headers": {
@@ -300,7 +300,7 @@
                             redirect: "follow"
                         };
 
-                        fetch("http://wa.panelpn.my.id/message/text?key=123", requestOptions)
+                        fetch("http://wa.pnblk.my.id/message/text?key=andalan", requestOptions)
                             .then(response => response.json())
                             .then(result => {
                                 if (!result.error && result.data.status === "PENDING") {
@@ -376,7 +376,7 @@
     redirect: "follow"
   };
 
-  fetch("http://wa.panelpn.my.id/message/text?key=123", requestOptions)
+  fetch("http://wa.pnblk.my.id/message/text?key=andalan", requestOptions)
     .then(response => response.json())
     .then(result => {
       if (!result.error && result.data.status === "PENDING") {
@@ -411,7 +411,7 @@
         var token = "YOUR_TOKEN";  // Replace with actual token
 
 var settings = {
-  "url": "https://wa.panelpn.my.id/group/getallgroups?key=123", // Ensure this URL is correct
+  "url": "https://wa.pnblk.my.id/group/getallgroups?key=andalan", // Ensure this URL is correct
   "method": "GET",
   "timeout": 0,
   "headers": {
