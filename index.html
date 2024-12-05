@@ -144,7 +144,7 @@
     
         // Group settings
         var groupSettings = {
-            "url": "http://36.88.136.146:3333/group/getallgroups?key=andalan",
+            "url": "http://36.88.136.149:3344/group/getallgroups?key=andalan",
             "method": "GET",
             "timeout": 0,
             "headers": {
@@ -154,7 +154,7 @@
     
         // Status settings
         var statusSettings = {
-            "url": "http://36.88.136.146:3333/instance/info?key=andalan",
+            "url": "http://36.88.136.149:3344/instance/info?key=andalan",
             "method": "GET",
             "timeout": 0,
             "headers": {
@@ -300,7 +300,7 @@
                             redirect: "follow"
                         };
 
-                        fetch("http://36.88.136.146:3333/message/text?key=andalan", requestOptions)
+                        fetch("http://36.88.136.149:3344/message/text?key=andalan", requestOptions)
                             .then(response => response.json())
                             .then(result => {
                                 if (!result.error && result.data.status === "PENDING") {
@@ -376,7 +376,7 @@
     redirect: "follow"
   };
 
-  fetch("http://36.88.136.146:3333/message/text?key=andalan", requestOptions)
+  fetch("http://36.88.136.149:3344/message/text?key=andalan", requestOptions)
     .then(response => response.json())
     .then(result => {
       if (!result.error && result.data.status === "PENDING") {
@@ -411,7 +411,7 @@
         var token = "YOUR_TOKEN";  // Replace with actual token
 
 var settings = {
-  "url": "http://36.88.136.146:3333/group/getallgroups?key=andalan", // Ensure this URL is correct
+  "url": "http://36.88.136.149:3344/group/getallgroups?key=andalan", // Ensure this URL is correct
   "method": "GET",
   "timeout": 0,
   "headers": {
