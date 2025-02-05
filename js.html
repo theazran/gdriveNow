@@ -166,7 +166,7 @@
 
         async function fetchData() {
             const selectedDate = document.getElementById('tanggalSidang').value;
-            const url = `http://36.88.136.146:1616/api.php?tanggalSidang=${selectedDate}`;
+            const url = `https://api.pnblk.my.id/api.php?tanggalSidang=${selectedDate}`;
 
             try {
                 const response = await fetch(url);
