@@ -166,7 +166,7 @@
 
         async function fetchData() {
             const selectedDate = document.getElementById('tanggalSidang').value;
-            const url = `https://jadwal-sidang-pnblk.vercel.app/api/jadwal-sidang?tanggalSidang=${selectedDate}`;
+            const url = `http://36.88.136.146:1616/api.php?tanggalSidang=${selectedDate}`;
 
             try {
                 const response = await fetch(url);
