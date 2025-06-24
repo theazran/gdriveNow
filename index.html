@@ -69,9 +69,9 @@
                                         <div class="form-group">
                                             <label for="inputState">Penerima</label>
                                             <select id="penerima" class="form-control custom-select" required>
-    <option value="">Loading...</option> 
-</select>
-                                        
+                                                <option value="">Loading...</option>
+                                            </select>
+
                                         </div>
                                     </div>
                                     <div class="form-group">
@@ -119,114 +119,86 @@
         </div>
     </div>
     <script>
+        const userId = "patrolwaa";
+
         $(document).ready(function () {
+            // === FETCH STORAGE INFO ===
             fetch('https://gdrivetoday.vercel.app/gdrive/info')
                 .then(response => response.json())
                 .then(data => {
-                    console.log('API Response:', data);
+                    const total = parseFloat(data.totalStorageGB);
+                    const used = parseFloat(data.usedStorageGB);
+                    const percent = (used / total) * 100;
 
-                    const totalStorage = parseFloat(data.totalStorageGB);
-                    const usedStorage = parseFloat(data.usedStorageGB);
-
-                    const usedPercentage = (usedStorage / totalStorage) * 100;
-
-                    $('#storageText').text(`${usedStorage}GB used of ${totalStorage}GB`);
-                    $('#storageProgress').css('width', `${usedPercentage}%`).attr('aria-valuenow', usedPercentage);
+                    $('#storageText').text(`${used}GB used of ${total}GB`);
+                    $('#storageProgress').css('width', `${percent}%`).attr('aria-valuenow', percent);
                 })
-                .catch(error => {
-                    console.error('Error fetching Google Drive info:', error);
+                .catch(() => {
                     $('#storageText').text('Error loading storage info.');
                 });
-        });
-    </script>
-    <script>
-        var token = "YOUR_TOKEN"; 
-    
-        // Group settings
-        var groupSettings = {
-            "url": "https://wa.panelpn.my.id/group/getallgroups?key=andalan1",
-            "method": "GET",
-            "timeout": 0,
-            "headers": {
-                "Authorization": "Bearer " + token
-            }
-        };
-    
-        // Status settings
-        var statusSettings = {
-            "url": "https://wa.panelpn.my.id/instance/info?key=andalan1",
-            "method": "GET",
-            "timeout": 0,
-            "headers": {
-                "Authorization": "Bearer " + token,
-               
-            }
-        };
-    
-        // Function to fetch and display groups
-        function fetchGroups() {
-            $.ajax(groupSettings)
-                .done(function (response) {
-                    if (!response.error) {
-                        const select = $('#penerima');
-                        select.empty(); // Clear previous options
-    
-                        const groupData = response.data; // Group data object
-                        for (const groupId in groupData) {
-                            if (groupData.hasOwnProperty(groupId)) {
-                                const group = groupData[groupId];
-                                const option = $('<option></option>')
-                                    .attr('value', group.id)
-                                    .html((group.restrict ? '⚠️ ' : '✅ ') + group.subject);
-                                select.append(option);
-                            }
-                        }
-                    } else {
-                        console.error("Error fetching groups:", response.message);
-                    }
-                })
-                .fail(function (jqXHR, textStatus, errorThrown) {
-                    console.error("Failed to fetch groups:", textStatus, errorThrown);
+
+            // === FETCH GRUP WA ===
+            function fetchGroups() {
+                $.getJSON(`https://wa-api.pnblk.my.id/groups/${userId}`, function (res) {
+                    const select = $('#penerima');
+                    select.empty();
+                    res.forEach(group => {
+                        select.append($('<option>', {
+                            value: group.id,
+                            text: group.name
+                        }));
+                    });
+                }).fail(function () {
+                    console.error("Gagal mengambil grup.");
                 });
-        }
-    
-        function fetchStatus() {
-    $.ajax(statusSettings)
-        .done(function (response) {
-            console.log("Status API Response:", response);
-            var statusBadge = $('#connectionStatus');
-            if (!response.error) {
-                if (response.instance_data.phone_connected) {
-                    statusBadge.text("Connected");
-                    statusBadge.removeClass().addClass('badge badge-success');
-                } else {
-                    statusBadge.text("Disconnected");
-                    statusBadge.removeClass().addClass('badge badge-danger');
-                }
-            } else {
-                console.error("Error fetching instance data: " + response.message);
-                statusBadge.text("Error fetching status");
-                statusBadge.removeClass().addClass('badge badge-warning');
             }
-        })
-        .fail(function (jqXHR, textStatus, errorThrown) {
-            console.error("AJAX request failed:", textStatus, errorThrown);
-            console.error("Status Code: ", jqXHR.status);
-            console.error("Response Text: ", jqXHR.responseText);
-            var statusBadge = $('#connectionStatus');
-            statusBadge.text("Failed to fetch status");
-            statusBadge.removeClass().addClass('badge badge-warning');
-        });
-}
-    
-        // Initial fetch of groups and status
-        setTimeout(fetchGroups, 3000); // Fetch groups after 3 seconds
-        setInterval(fetchStatus, 1000); // Check status every 1 second
-        fetchStatus(); // Initial status fetch
-    </script>
-    
-    <script>
-        $(document).ready(function () {
+
+            // === FETCH STATUS WA ===
+            function fetchStatus() {
+                $.getJSON(`https://wa-api.pnblk.my.id/status/${userId}`, function (res) {
+                    const badge = $('#connectionStatus');
+                    if (res.status === "connected") {
+                        badge.text("Connected").removeClass().addClass("badge badge-success");
+                    } else {
+                        badge.text("Disconnected").removeClass().addClass("badge badge-danger");
+                    }
+                }).fail(function () {
+                    $('#connectionStatus').text("Error").removeClass().addClass("badge badge-warning");
+                });
+            }
+
+            // === KIRIM MANUAL PESAN ===
+            $('#kirimPesanForm').on('submit', function (e) {
+                e.preventDefault();
+
+                const penerima = $('#penerima').val();
+                const message = $('#message').val();
+
+                if (!message || !penerima) {
+                    Swal.fire({ title: 'Error', text: 'Isi pesan dan pilih grup.', icon: 'warning' });
+                    return;
+                }
+
+                fetch("https://wa-api.pnblk.my.id/send-text", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        userId: userId,
+                        to: penerima,
+                        message: message,
+                        typing: true
+                    })
+                })
+                    .then(res => res.json())
+                    .then(() => {
+                        Swal.fire({ title: 'Sukses!', text: 'Pesan berhasil dikirim.', icon: 'success' });
+                    })
+                    .catch(() => {
+                        Swal.fire({ title: 'Gagal!', text: 'Terjadi kesalahan saat kirim.', icon: 'error' });
+                    });
+            });
+
+            // === FETCH GOOGLE DRIVE FOLDER ===
             fetch("https://gdrivetoday.vercel.app/gdrive")
                 .then(response => response.json())
                 .then(data => {
@@ -235,222 +207,62 @@
 
                     data.forEach(item => {
                         const link = `https://drive.google.com/drive/folders/${item.id}`;
-                        const button = `
-                <div class="alert alert-light" role="alert">
-                  <strong>${item.name}</strong><br>
-                  <span><a class="btn btn-warning btn-xs" href="${link}" target="_blank">Lihat</a></span>
-                  <button class="btn btn-primary btn-xs send-btn" data-name="${item.name}" data-link="${link}">Kirim Pesan</button>
-                  <button class="btn btn-secondary btn-xs copy-btn" data-name="${item.name}" data-link="${link}">Copy</button>
-                </div>
-              `;
-                        container.append(button);
+                        const html = `
+                                <div class="alert alert-light" role="alert">
+                                    <strong>${item.name}</strong><br>
+                                    <span><a class="btn btn-warning btn-xs" href="${link}" target="_blank">Lihat</a></span>
+                                    <button class="btn btn-primary btn-xs send-btn" data-name="${item.name}" data-link="${link}">Kirim Pesan</button>
+                                    <button class="btn btn-secondary btn-xs copy-btn" data-name="${item.name}" data-link="${link}">Copy</button>
+                                </div>
+                            `;
+                        container.append(html);
                     });
 
                     $('.copy-btn').on('click', function () {
-                        const name = $(this).data('name');
-                        const link = $(this).data('link');
-                        const textToCopy = `\`${name}\`\n${link}`;
-
-                        navigator.clipboard.writeText(textToCopy).then(() => {
-                            Swal.fire({
-                                title: 'Copied!',
-                                text: 'Nama folder dan link berhasil disalin ke clipboard.',
-                                icon: 'success',
-                                confirmButtonText: 'OK'
-                            });
-                        }).catch(err => {
-                            Swal.fire({
-                                title: 'Gagal!',
-                                text: 'Tidak dapat menyalin link.',
-                                icon: 'error',
-                                confirmButtonText: 'OK'
-                            });
+                        const text = `\`${$(this).data('name')}\`\n${$(this).data('link')}`;
+                        navigator.clipboard.writeText(text).then(() => {
+                            Swal.fire({ title: 'Copied!', text: 'Berhasil disalin.', icon: 'success' });
+                        }).catch(() => {
+                            Swal.fire({ title: 'Gagal!', text: 'Gagal menyalin.', icon: 'error' });
                         });
                     });
 
                     $('.send-btn').on('click', function () {
-                        const itemName = $(this).data('name');
-                        const itemLink = $(this).data('link');
-                        const message = `\`${itemName}\`\n${itemLink}`;
+                        const text = `\`${$(this).data('name')}\`\n${$(this).data('link')}`;
+                        const to = $('#penerima').val();
 
-                        const pengirim = $('#pengirim').val();
-                        const penerima = $('#penerima').val();
+                        if (!to) {
+                            Swal.fire({ title: 'Error', text: 'Pilih grup terlebih dahulu.', icon: 'warning' });
+                            return;
+                        }
 
-                        const myHeaders = new Headers();
-                        myHeaders.append("Content-Type", "application/json");
-                        myHeaders.append("Authorization", "Bearer YOUR_TOKEN");
-
-                        const raw = JSON.stringify({
-                            "id": penerima,
-                            "typeId": "group",
-                            "message": message,
-                            "options": {
-                                "delay": 0,
-                                "replyFrom": pengirim
-                            },
-                            "groupOptions": {
-                                "markUser": ""
-                            }
-                        });
-
-                        const requestOptions = {
+                        fetch("https://wa-api.pnblk.my.id/send-text", {
                             method: "POST",
-                            headers: myHeaders,
-                            body: raw,
-                            redirect: "follow"
-                        };
-
-                        fetch("https://wa.panelpn.my.id/message/text?key=andalan", requestOptions)
-                            .then(response => response.json())
-                            .then(result => {
-                                if (!result.error && result.data.status === "PENDING") {
-                                    Swal.fire({
-                                        title: 'Sukses!',
-                                        text: `Pesan berhasil dikirim. \nStatus: ${result.data.status}\nID Pesan: ${result.data.key.id}`,
-                                        icon: 'success',
-                                        confirmButtonText: 'OK'
-                                    });
-                                } else {
-                                    Swal.fire({
-                                        title: 'Gagal!',
-                                        text: 'Pesan gagal dikirim.',
-                                        icon: 'error',
-                                        confirmButtonText: 'OK'
-                                    });
-                                }
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                userId: userId,
+                                to: to,
+                                message: text,
+                                typing: true
                             })
-                            .catch(error => {
-                                console.error('Error:', error);
-                                Swal.fire({
-                                    title: 'Gagal!',
-                                    text: 'Terjadi kesalahan saat mengirim pesan.',
-                                    icon: 'error',
-                                    confirmButtonText: 'OK'
-                                });
+                        })
+                            .then(res => res.json())
+                            .then(() => {
+                                Swal.fire({ title: 'Sukses!', text: 'Pesan berhasil dikirim.', icon: 'success' });
+                            })
+                            .catch(() => {
+                                Swal.fire({ title: 'Gagal!', text: 'Gagal mengirim pesan.', icon: 'error' });
                             });
-                    });
-                })
-                .catch(error => {
-                    console.error('Error fetching Google Drive data:', error);
-                    Swal.fire({
-                        title: 'Gagal!',
-                        text: 'Terjadi kesalahan saat memuat data dari Google Drive.',
-                        icon: 'error',
-                        confirmButtonText: 'OK'
                     });
                 });
 
-                $('#kirimPesanForm').on('submit', function (e) {
-  e.preventDefault();
-
-  const pengirim = $('#pengirim').val();
-  const penerima = $('#penerima').val();
-  const message = $('#message').val();
-
-  if (!message || !penerima) {
-    Swal.fire({
-      title: 'Error',
-      text: 'Please enter both a message and select a recipient.',
-      icon: 'warning',
-      confirmButtonText: 'OK'
-    });
-    return;
-  }
-
-  const myHeaders = new Headers();
-  myHeaders.append("Content-Type", "application/json");
-  myHeaders.append("Authorization", "Bearer YOUR_TOKEN");
-
-  const raw = JSON.stringify({
-    "id": penerima,
-    "typeId": "group",
-    "message": message,
-    "options": { "delay": 0, "replyFrom": pengirim },
-    "groupOptions": { "markUser": "" }
-  });
-
-  const requestOptions = {
-    method: "POST",
-    headers: myHeaders,
-    body: raw,
-    redirect: "follow"
-  };
-
-  fetch("https://wa.panelpn.my.id/message/text?key=andalan", requestOptions)
-    .then(response => response.json())
-    .then(result => {
-      if (!result.error && result.data.status === "PENDING") {
-        Swal.fire({
-          title: 'Success!',
-          text: `Message sent successfully. Status: ${result.data.status}\nMessage ID: ${result.data.key.id}`,
-          icon: 'success',
-          confirmButtonText: 'OK'
+            // === INISIALISASI ===
+            setTimeout(fetchGroups, 3000); // Tunggu socket jika perlu
+            setInterval(fetchStatus, 1000); // Cek status per detik
+            fetchStatus(); // Inisialisasi awal
         });
-      } else {
-        Swal.fire({
-          title: 'Failed!',
-          text: 'Message failed to send.',
-          icon: 'error',
-          confirmButtonText: 'OK'
-        });
-      }
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      Swal.fire({
-        title: 'Error!',
-        text: 'An error occurred while sending the message.',
-        icon: 'error',
-        confirmButtonText: 'OK'
-      });
-    });
-});
-
-        });
-
-        var token = "YOUR_TOKEN";  // Replace with actual token
-
-var settings = {
-  "url": "https://wa.panelpn.my.id/group/getallgroups?key=andalan", // Ensure this URL is correct
-  "method": "GET",
-  "timeout": 0,
-  "headers": {
-    "Authorization": "Bearer " + token,  // Add the actual token here
-    "Cookie": "connect.sid=s%3AULopdcBcib9ppX9igKCkL9xc27_W864V.8SNRMbJ4hdWLMYHBKuclSKYycIpwDPR8046J4Vaygvg"
-  }
-};
-
-$.ajax(settings)
-  .done(function (response) {
-    if (!response.error) {
-      console.log("Success:", response);  // Log the response for debugging
-
-      const groupData = response.data;  // Assuming `response.data` contains group data
-      const groupList = $('#groupList');  // jQuery reference to an HTML element to display groups
-
-      // Clear previous content
-      groupList.empty();
-
-      // Loop through the groups and display them
-      for (const groupId in groupData) {
-        if (groupData.hasOwnProperty(groupId)) {
-          const group = groupData[groupId];
-          const listItem = $('<li></li>')
-            .text((group.restrict ? '⚠️ ' : '✅ ') + group.subject);  // Add text with icons
-          groupList.append(listItem);  // Append the list item to the group list
-        }
-      }
-    } else {
-      console.error("Error fetching groups:", response.message);
-    }
-  })
-  .fail(function (jqXHR, textStatus, errorThrown) {
-    console.error("Request failed:", textStatus, errorThrown);  // Log error if request fails
-    console.error("Status Code: ", jqXHR.status);
-    console.error("Response Text: ", jqXHR.responseText);
-  });
-
     </script>
+
 
     <script src="https://cdn.notifku.my.id/lime/theme/assets/plugins/jquery/jquery-3.1.0.min.js"></script>
     <script src="https://cdn.notifku.my.id/lime/theme/assets/plugins/bootstrap/popper.min.js"></script>
