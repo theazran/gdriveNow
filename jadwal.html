@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jadwal Sidang - Pengadilan</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Menggunakan font Inter sebagai standar Tailwind */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+        }
+
+        /* Gaya scrollbar halus untuk tabel */
+        .table-responsive {
+            overflow-x: auto;
+            max-height: 650px;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 #f1f5f9;
+        }
+        
+        .table-responsive::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .table-responsive::-webkit-scrollbar-track {
+            background: #f1f5f9; 
+        }
+        .table-responsive::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1; 
+            border-radius: 4px;
+        }
+
+        /* Sticky Header */
+        thead th {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background-color: #f8fafc; /* Pastikan header punya background */
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        /* Garis pemisah tabel */
+        .custom-table th,
+        .custom-table td {
+            border-right: 1px solid #e2e8f0;
+        }
+
+        .custom-table th:last-child,
+        .custom-table td:last-child {
+            border-right: none;
+        }
+
+        /* Animasi Fade */
+        .fade-in {
+            animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+    <!-- Font & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body class="min-h-screen flex flex-col text-slate-800">
+
+    <!-- Loader Overlay -->
+    <div id="initial-loader" class='fixed inset-0 bg-white/90 z-[100] flex flex-col items-center justify-center hidden backdrop-blur-sm transition-opacity duration-300'>
+        <div class='animate-spin rounded-full h-14 w-14 border-4 border-t-4 border-blue-600 border-blue-100 shadow-lg mb-4'></div>
+        <p class="text-blue-700 font-semibold animate-pulse tracking-wide">Sedang memuat data...</p>
+    </div>
+
+    <!-- Navbar -->
+    <header class="bg-white shadow-sm border-b border-slate-200 fixed w-full z-30">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-gradient-to-br from-blue-600 to-blue-700 p-2 rounded-lg shadow-md text-white">
+                    <i class="material-icons text-xl">gavel</i>
+                </div>
+                <div>
+                    <h1 class="text-lg sm:text-xl font-bold text-slate-800 tracking-tight">Jadwal Sidang</h1>
+                    <p class="text-[10px] sm:text-xs text-slate-500 font-medium uppercase tracking-wider">Sistem Informasi Pengadilan</p>
+                </div>
+            </div>
+            <div class="hidden md:flex items-center bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200 text-sm text-slate-600 shadow-sm">
+                <i class="far fa-calendar-alt mr-2 text-blue-500"></i>
+                <span id="current-date-display" class="font-medium"></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+        <div class="container mx-auto max-w-7xl">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+                <!-- Sidebar Filter -->
+                <div class="lg:col-span-3 xl:col-span-3">
+                    <div class="bg-white shadow-lg shadow-slate-200/50 rounded-xl border border-slate-100 overflow-hidden sticky top-24">
+                        <div class="bg-slate-50/80 px-5 py-4 border-b border-slate-100 flex items-center justify-between backdrop-blur-sm">
+                            <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wide flex items-center">
+                                <i class="material-icons text-slate-400 mr-2 text-sm">tune</i>
+                                Filter Data
+                            </h2>
+                        </div>
+
+                        <div class="p-5 space-y-5">
+                            <!-- Input Tanggal -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5 ml-1">Tanggal Sidang</label>
+                                <div class="relative group">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="far fa-calendar text-slate-400 group-focus-within:text-blue-500 transition-colors"></i>
+                                    </div>
+                                    <input type="date" id="tanggalSidang"
+                                        class="w-full pl-10 pr-3 py-2.5 bg-white border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm">
+                                </div>
+                            </div>
+
+                            <!-- Select Kategori -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5 ml-1">Tipe Perkara</label>
+                                <div class="relative group">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-folder text-slate-400 group-focus-within:text-blue-500 transition-colors text-xs"></i>
+                                    </div>
+                                    <select id="scheduleSelect"
+                                        class="w-full pl-10 pr-8 py-2.5 bg-white border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 appearance-none cursor-pointer shadow-sm transition-all">
+                                        <option value="pidana">Pidana</option>
+                                        <option value="perdata">Perdata</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                                        <i class="fas fa-chevron-down text-xs text-slate-400"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="border-t border-slate-100 my-2"></div>
+
+                            <!-- Tombol -->
+                            <div class="space-y-3">
+                                <button onclick="fetchData()"
+                                    class="w-full flex items-center justify-center px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 active:translate-y-0">
+                                    <i class="fas fa-search mr-2"></i> Tampilkan Jadwal
+                                </button>
+                                <button id="exportPDFBtn" onclick="exportPDF()" disabled
+                                    class="w-full flex items-center justify-center px-4 py-2.5 bg-white border border-slate-200 text-slate-600 hover:text-green-600 hover:border-green-500 hover:bg-green-50 text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-slate-600 disabled:hover:border-slate-200 shadow-sm">
+                                    <i class="fas fa-file-pdf mr-2"></i> Unduh PDF
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Konten Hasil -->
+                <div id="jadwalSidang" class="lg:col-span-9 xl:col-span-9 space-y-4">
+                    
+                    <!-- Search Bar (Client Side) -->
+                    <div id="search-container" class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 hidden fade-in">
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-search text-slate-400"></i>
+                            </div>
+                            <input type="text" id="clientSearchInput" placeholder="Cari nomor perkara, nama terdakwa, atau hakim..." 
+                                class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
+                        </div>
+                    </div>
+
+                    <!-- Welcome Box -->
+                    <div id="welcome-box" class="bg-white border-2 border-dashed border-slate-200 rounded-xl p-10 text-center">
+                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-50 mb-4">
+                            <i class="material-icons text-slate-400 text-4xl">event_note</i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-slate-700">Belum Ada Data Ditampilkan</h3>
+                        <p class="text-slate-500 mt-2 text-sm">Silakan pilih tanggal dan klik tombol "Tampilkan Jadwal" untuk memulai.</p>
+                    </div>
+
+                    <!-- Pidana Card -->
+                    <div id="pidana-card" class="bg-white shadow-lg shadow-slate-200/50 rounded-xl border border-slate-100 hidden fade-in overflow-hidden">
+                        <div class="px-6 py-4 border-b border-slate-100 bg-red-50 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="p-2 bg-white rounded-lg shadow-sm text-red-600 border border-red-100">
+                                    <i class="fas fa-balance-scale text-lg"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-base font-bold text-slate-800">Sidang Pidana</h3>
+                                    <p class="text-xs text-slate-500" id="pidana-count">Memuat data...</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold tracking-wider text-red-600 bg-white px-3 py-1 rounded-full border border-red-100 shadow-sm uppercase">
+                                PIDANA
+                            </span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="min-w-full divide-y divide-slate-200 custom-table" id="jadwalTablePidana">
+                                <thead class="bg-slate-50 text-slate-600 font-bold text-xs uppercase tracking-wider">
+                                    <tr>
+                                        <th class="px-4 py-3.5 text-center w-12">No</th>
+                                        <th class="px-4 py-3.5 text-left min-w-[120px]">No. Perkara</th>
+                                        <th class="px-4 py-3.5 text-left w-24">Ruang</th>
+                                        <th class="px-4 py-3.5 text-left min-w-[200px]">Agenda</th>
+                                        <th class="px-4 py-3.5 text-left min-w-[150px]">Penuntut Umum</th>
+                                        <th class="px-4 py-3.5 text-left min-w-[150px]">Terdakwa</th>
+                                        <th class="px-4 py-3.5 text-left min-w-[180px]">Majelis Hakim</th>
+                                        <th class="px-4 py-3.5 text-left min-w-[140px]">Panitera</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-slate-100 text-sm text-slate-600" id="pidana-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Perdata Card -->
+                    <div id="perdata-card" class="bg-white shadow-lg shadow-slate-200/50 rounded-xl border border-slate-100 hidden fade-in overflow-hidden">
+                        <div class="px-6 py-4 border-b border-slate-100 bg-green-50 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="p-2 bg-white rounded-lg shadow-sm text-green-600 border border-green-100">
+                                    <i class="fas fa-users text-lg"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-base font-bold text-slate-800">Sidang Perdata</h3>
+                                    <p class="text-xs text-slate-500" id="perdata-count">Memuat data...</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold tracking-wider text-green-600 bg-white px-3 py-1 rounded-full border border-green-100 shadow-sm uppercase">
+                                PERDATA
+                            </span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="min-w-full divide-y divide-slate-200 custom-table" id="jadwalTablePerdata">
+                                <thead class="bg-slate-50 text-slate-600 font-bold text-xs uppercase tracking-wider">
+                                    <tr>
+                                        <th class="px-4 py-3.5 text-center w-12">No</th>
+                                        <th class="px-4 py-3.5 text-left min-w-[120px]">No. Perkara</th>
+                                        <th class="px-4 py-3.5 text-left w-24">Ruang</th>
+                                        <th class="px-4 py-3.5 text-left min-w-[200px]">Agenda</th>
+                                        <th class="px-4 py-3.5 text-left min-w-[150px]">Penggugat</th>
+                                        <th class="px-4 py-3.5 text-left min-w-[150px]">Tergugat</th>
+                                        <th class="px-4 py-3.5 text-left min-w-[180px]">Majelis Hakim</th>
+                                        <th class="px-4 py-3.5 text-left min-w-[140px]">Panitera</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-slate-100 text-sm text-slate-600" id="perdata-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-6 mt-auto">
+        <div class="container mx-auto px-4 text-center">
+            <p class="text-sm text-slate-500">
+                &copy; <script>document.write(new Date().getFullYear())</script> Sistem Informasi Jadwal Sidang. <br>
+                <span class="text-xs text-slate-400 mt-1 block">Made with <i class="fas fa-heart text-red-400 text-[10px] animate-pulse"></i> by M Asran</span>
+            </p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
+    <script>
+        // --- Global State ---
+        let currentPidanaData = [];
+        let currentPerdataData = [];
+
+        // --- Helper Functions ---
+        function setTodayDate() {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            document.getElementById('tanggalSidang').value = `${yyyy}-${mm}-${dd}`;
+            
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('current-date-display').textContent = today.toLocaleDateString('id-ID', options);
+        }
+
+        // --- Event Listeners ---
+        document.addEventListener('DOMContentLoaded', () => {
+            setTodayDate();
+            fetchData(); 
+        });
+
+        const scheduleSelect = document.getElementById('scheduleSelect');
+        const searchInput = document.getElementById('clientSearchInput');
+        const exportPDFBtn = document.getElementById('exportPDFBtn');
+
+        // Dropdown change
+        scheduleSelect.addEventListener('change', function() {
+            updateView(this.value);
+        });
+
+        // Live Search Filter
+        searchInput.addEventListener('input', function(e) {
+            const keyword = e.target.value.toLowerCase();
+            const type = scheduleSelect.value;
+            const tableId = type === 'pidana' ? 'pidana-table-body' : 'perdata-table-body';
+            const rows = document.querySelectorAll(`#${tableId} tr`);
+            
+            let visibleCount = 0;
+            rows.forEach(row => {
+                // Lewati baris "tidak ada data"
+                if(row.cells.length < 2) return;
+
+                const text = row.innerText.toLowerCase();
+                if (text.includes(keyword)) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+
+        // --- Main Functions ---
+        function updateView(type) {
+            const pidanaCard = document.getElementById('pidana-card');
+            const perdataCard = document.getElementById('perdata-card');
+            const welcomeBox = document.getElementById('welcome-box');
+            const searchContainer = document.getElementById('search-container');
+            
+            welcomeBox.classList.add('hidden');
+            searchContainer.classList.remove('hidden');
+            
+            // Reset search input when switching tabs
+            searchInput.value = '';
+            const allRows = document.querySelectorAll('tbody tr');
+            allRows.forEach(r => r.style.display = '');
+
+            if (type === 'pidana') {
+                pidanaCard.classList.remove('hidden');
+                perdataCard.classList.add('hidden');
+                // Update Export Button State
+                exportPDFBtn.disabled = currentPidanaData.length === 0;
+            } else {
+                pidanaCard.classList.add('hidden');
+                perdataCard.classList.remove('hidden');
+                // Update Export Button State
+                exportPDFBtn.disabled = currentPerdataData.length === 0;
+            }
+        }
+
+        async function fetchData() {
+            const selectedDate = document.getElementById('tanggalSidang').value;
+            const url = `https://api.pnblk.my.id/api.php?tanggalSidang=${selectedDate}`;
+            const selectedSchedule = scheduleSelect.value;
+            const loader = document.getElementById('initial-loader');
+
+            loader.classList.remove('hidden');
+            exportPDFBtn.disabled = true;
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Gagal menghubungi server');
+                
+                const data = await response.json();
+                
+                // Simpan ke state global
+                currentPidanaData = data.pidana || [];
+                currentPerdataData = data.perdata || [];
+
+                // Update Badges
+                document.getElementById('pidana-count').textContent = `${currentPidanaData.length} Perkara ditemukan`;
+                document.getElementById('perdata-count').textContent = `${currentPerdataData.length} Perkara ditemukan`;
+
+                // Render Tables
+                renderTable('pidana', currentPidanaData, document.getElementById('pidana-table-body'));
+                renderTable('perdata', currentPerdataData, document.getElementById('perdata-table-body'));
+
+                // Update UI
+                updateView(selectedSchedule);
+
+            } catch (error) {
+                console.error(error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Memuat Data',
+                    text: 'Terjadi kesalahan koneksi atau data tidak tersedia.',
+                    confirmButtonColor: '#2563eb'
+                });
+                // Reset data jika error
+                currentPidanaData = [];
+                currentPerdataData = [];
+                renderTable('pidana', [], document.getElementById('pidana-table-body'));
+                renderTable('perdata', [], document.getElementById('perdata-table-body'));
+            } finally {
+                loader.classList.add('hidden');
+            }
+        }
+
+        function renderTable(type, data, tbody) {
+            tbody.innerHTML = '';
+            if (data && data.length > 0) {
+                data.forEach((item, index) => {
+                    const pihakLawan = item.pihak2 || '-';
+                    const hakimFormatted = item.namaHakim ? item.namaHakim.replace(/\n/g, '<br>') : '-';
+                    const panitera = item.namaPanitera || '-';
+                    
+                    // Warna baris selang-seling yang halus
+                    const rowBg = index % 2 === 0 ? 'bg-white' : 'bg-slate-50/50';
+
+                    const row = `
+                        <tr class="${rowBg} hover:bg-blue-50/80 transition-colors group">
+                            <td class="px-4 py-3.5 text-center text-slate-500 font-medium align-top border-r border-slate-100">${index + 1}</td>
+                            <td class="px-4 py-3.5 text-blue-600 font-medium whitespace-nowrap align-top border-r border-slate-100">${item.noPerkara}</td>
+                            <td class="px-4 py-3.5 align-top border-r border-slate-100">
+                                <span class="inline-block bg-slate-100 text-slate-600 px-2 py-1 rounded text-xs font-bold border border-slate-200">${item.ruangSidang}</span>
+                            </td>
+                            <td class="px-4 py-3.5 text-slate-700 leading-relaxed align-top border-r border-slate-100 min-w-[250px]">${item.agendaSidang}</td>
+                            <td class="px-4 py-3.5 text-slate-600 align-top border-r border-slate-100">${item.pihak1}</td>
+                            <td class="px-4 py-3.5 text-slate-600 align-top border-r border-slate-100">${pihakLawan}</td>
+                            <td class="px-4 py-3.5 text-slate-700 text-xs leading-relaxed align-top border-r border-slate-100 font-medium">${hakimFormatted}</td>
+                            <td class="px-4 py-3.5 text-slate-500 text-xs align-top">${panitera}</td>
+                        </tr>
+                    `;
+                    tbody.insertAdjacentHTML('beforeend', row);
+                });
+            } else {
+                // Tampilan Kosong yang Menarik
+                const colSpan = 8;
+                const emptyMessage = type === 'pidana' 
+                    ? 'Tidak ada jadwal sidang pidana.' 
+                    : 'Tidak ada jadwal sidang perdata.';
+                
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="${colSpan}" class="px-6 py-16 text-center bg-white">
+                            <div class="flex flex-col items-center justify-center">
+                                <div class="bg-slate-50 p-4 rounded-full mb-3">
+                                    <i class="far fa-folder-open text-slate-300 text-3xl"></i>
+                                </div>
+                                <p class="text-slate-500 font-medium">${emptyMessage}</p>
+                                <p class="text-xs text-slate-400 mt-1">Coba ubah tanggal pencarian.</p>
+                            </div>
+                        </td>
+                    </tr>`;
+            }
+        }
+
+        function createPDF(tableId, title, headerColor) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('landscape', 'pt', 'legal');
+            const dateStr = document.getElementById('tanggalSidang').value;
+
+            // Header Config
+            const headStyles = {
+                fillColor: headerColor,
+                textColor: 255,
+                fontStyle: 'bold',
+                fontSize: 9,
+                halign: 'center',
+                valign: 'middle',
+                lineWidth: 0.5,
+                lineColor: [230, 230, 230]
+            };
+
+            // Body Styles
+            const styles = {
+                fontSize: 8,
+                cellPadding: 5,
+                valign: 'top',
+                lineColor: [230, 230, 230],
+                lineWidth: 0.5,
+                overflow: 'linebreak'
+            };
+
+            // Header PDF
+            doc.setFontSize(14);
+            doc.setTextColor(40);
+            doc.setFont("helvetica", "bold");
+            doc.text(title, 40, 45);
+            
+            doc.setFontSize(10);
+            doc.setTextColor(100);
+            doc.setFont("helvetica", "normal");
+            doc.text(`Tanggal Sidang: ${dateStr}`, 40, 62);
+            
+            // Garis bawah header
+            doc.setDrawColor(200);
+            doc.setLineWidth(1);
+            doc.line(40, 70, 968, 70); // Legal width approx 1008pt
+
+            doc.autoTable({
+                html: tableId,
+                startY: 85,
+                theme: 'grid',
+                headStyles: headStyles,
+                styles: styles,
+                columnStyles: {
+                    0: { cellWidth: 30, halign: 'center' }, // No
+                    1: { cellWidth: 80, fontStyle: 'bold' }, // No Perkara
+                    2: { cellWidth: 50, halign: 'center' }, // Ruang
+                    3: { cellWidth: 'auto' }, // Agenda (flexible)
+                    6: { cellWidth: 110 }, // Hakim
+                    7: { cellWidth: 90 }  // Panitera
+                },
+                didParseCell: function (data) {
+                    if (data.section === 'body' && data.cell.raw) {
+                         const text = data.cell.raw.innerText || data.cell.raw.textContent;
+                         data.cell.text = text.split('\n').map(t => t.trim()).filter(Boolean);
+                    }
+                }
+            });
+
+            doc.save(`${title.toLowerCase().replace(/\s/g, '_')}_${dateStr}.pdf`);
+        }
+
+        function exportPDF() {
+            const type = scheduleSelect.value;
+            if (type === 'pidana' && currentPidanaData.length > 0) {
+                createPDF('#jadwalTablePidana', 'JADWAL SIDANG PIDANA', [220, 38, 38]); // Merah
+            } else if (type === 'perdata' && currentPerdataData.length > 0) {
+                createPDF('#jadwalTablePerdata', 'JADWAL SIDANG PERDATA', [22, 163, 74]); // Hijau
+            }
+        }
+    </script>
+</body>
+</html>
