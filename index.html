@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Integrated</title>
+    <title>Dashboard</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Inter -->
@@ -51,6 +51,9 @@
         /* Tab Active State */
         .tab-active { background-color: #18181b; color: white; shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
         .tab-inactive { background-color: transparent; color: #71717a; hover:bg-gray-100; }
+        
+        /* Table Specifics */
+        th, td { white-space: normal; vertical-align: top; }
     </style>
 </head>
 
@@ -72,8 +75,8 @@
                     <i class="material-icons text-[18px]">dashboard</i>
                 </div>
                 <div>
-                    <span class="font-bold text-sm tracking-tight block">Unified Dash</span>
-                    <span class="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Sistem Terintegrasi</span>
+                    <span class="font-bold text-sm tracking-tight block">PIDSUS</span>
+                    <span class="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Pidana Perdata</span>
                 </div>
             </div>
 
@@ -114,7 +117,7 @@
     </header>
 
     <!-- Main Content Area -->
-    <main class="flex-1 relative z-10 pt-32 pb-12 px-4 max-w-6xl mx-auto w-full">
+    <main class="flex-1 relative z-10 pt-32 pb-12 px-4 max-w-7xl mx-auto w-full">
 
         <!-- ================= VIEW 1: WA & DRIVE ================= -->
         <div id="view-wa" class="space-y-6 fade-in">
@@ -194,8 +197,9 @@
         <div id="view-sidang" class="hidden space-y-6 fade-in">
             <!-- Filter Bar -->
             <div class="glass rounded-[2rem] p-1 border border-white/40 shadow-lg">
-                <div class="bg-white/80 rounded-[1.8rem] p-4 md:p-6 border border-border/50 flex flex-col md:flex-row gap-4 items-end md:items-center justify-between">
+                <div class="bg-white/80 rounded-[1.8rem] p-4 md:p-6 border border-border/50 flex flex-col gap-4">
                     <div class="flex flex-col md:flex-row gap-4 w-full">
+                        <!-- Input Tanggal -->
                         <div class="space-y-1.5 flex-1">
                             <label class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Tanggal Sidang</label>
                             <div class="relative">
@@ -203,6 +207,7 @@
                                 <input type="date" id="tanggalSidang" class="w-full pl-10 pr-4 py-2.5 bg-muted/30 border border-border rounded-xl text-sm focus:ring-2 focus:ring-black/5 focus:bg-white transition-all outline-none">
                             </div>
                         </div>
+                        <!-- Input Kategori -->
                         <div class="space-y-1.5 flex-1">
                             <label class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Kategori</label>
                             <div class="relative">
@@ -214,13 +219,29 @@
                                 <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none"><i class="fas fa-chevron-down text-xs text-muted-foreground"></i></div>
                             </div>
                         </div>
+                        <!-- Input Grup WA (Untuk Kirim Laporan) -->
+                        <div class="space-y-1.5 flex-1">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Grup Tujuan WA</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="fab fa-whatsapp text-muted-foreground"></i></div>
+                                <select id="sidangTargetWA" class="w-full pl-10 pr-8 py-2.5 bg-muted/30 border border-border rounded-xl text-sm focus:ring-2 focus:ring-black/5 focus:bg-white transition-all appearance-none outline-none">
+                                    <option value="">Pilih Grup...</option>
+                                </select>
+                                <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none"><i class="fas fa-chevron-down text-xs text-muted-foreground"></i></div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="flex gap-2 w-full md:w-auto">
-                        <button onclick="fetchJadwalSidang()" class="flex-1 md:flex-none h-10 px-6 bg-primary text-white text-sm font-medium rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all">
+                    
+                    <div class="flex gap-2 w-full md:w-auto justify-end border-t border-border/50 pt-4">
+                        <button onclick="fetchJadwalSidang()" class="h-10 px-6 bg-primary text-white text-sm font-medium rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all">
                             Tampilkan
                         </button>
-                        <button onclick="exportPDF()" id="btnExportPDF" disabled class="flex-1 md:flex-none h-10 px-4 bg-white border border-border text-muted-foreground hover:text-red-600 hover:border-red-200 text-sm font-medium rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                            <i class="far fa-file-pdf"></i> PDF
+                        <div class="h-10 w-px bg-border/50 mx-1"></div>
+                        <button onclick="exportPDF()" id="btnExportPDF" disabled class="h-10 px-4 bg-white border border-border text-muted-foreground hover:text-red-600 hover:border-red-200 text-sm font-medium rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                            <i class="far fa-file-pdf"></i> Unduh PDF
+                        </button>
+                        <button onclick="sendSidangToWA()" id="btnSendWA" disabled class="h-10 px-4 bg-white border border-border text-muted-foreground hover:text-green-600 hover:border-green-200 text-sm font-medium rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                            <i class="fab fa-whatsapp"></i> Kirim PDF ke WA
                         </button>
                     </div>
                 </div>
@@ -252,15 +273,11 @@
                         </h3>
                     </div>
                     <div class="overflow-x-auto">
+                        <!-- Tabel 10 Kolom sesuai kode awal -->
                         <table class="w-full text-sm text-left" id="tabel-sidang">
                             <thead class="bg-muted/30 text-xs text-muted-foreground uppercase border-b border-border">
-                                <tr>
-                                    <th class="px-6 py-4 font-semibold w-12 text-center">No</th>
-                                    <th class="px-6 py-4 font-semibold">No. Perkara</th>
-                                    <th class="px-6 py-4 font-semibold">Ruang</th>
-                                    <th class="px-6 py-4 font-semibold">Agenda</th>
-                                    <th class="px-6 py-4 font-semibold">Pihak</th>
-                                    <th class="px-6 py-4 font-semibold">Hakim & Panitera</th>
+                                <tr id="tabel-header-row">
+                                    <!-- Header akan diisi oleh JS -->
                                 </tr>
                             </thead>
                             <tbody id="tbody-sidang" class="divide-y divide-border/50">
@@ -311,19 +328,13 @@
                 b.className = b.className.replace('tab-inactive', 'tab-active').replace('text-[#71717a]', 'text-white').replace('bg-transparent', 'bg-[#18181b]');
             });
 
-            // Toggle Views with Animation reset
+            // Toggle Views
             if (tab === 'wa') {
                 viewSidang.classList.add('hidden');
                 viewWa.classList.remove('hidden');
-                viewWa.style.animation = 'none';
-                viewWa.offsetHeight; /* trigger reflow */
-                viewWa.style.animation = null; 
             } else {
                 viewWa.classList.add('hidden');
                 viewSidang.classList.remove('hidden');
-                viewSidang.style.animation = 'none';
-                viewSidang.offsetHeight; /* trigger reflow */
-                viewSidang.style.animation = null;
                 // Auto set today date if empty
                 if(!document.getElementById('tanggalSidang').value) {
                     document.getElementById('tanggalSidang').valueAsDate = new Date();
@@ -355,14 +366,16 @@
             try {
                 const res = await fetch(`${API_WA}/groups/${userId}`);
                 const groups = await res.json();
-                const select = document.getElementById('penerima');
-                select.innerHTML = '<option value="">-- Pilih Grup Tujuan --</option>';
-                groups.forEach(g => {
-                    const opt = document.createElement('option');
-                    opt.value = g.id;
-                    opt.textContent = g.name;
-                    select.appendChild(opt);
-                });
+                
+                const selectWa = document.getElementById('penerima');
+                const selectSidang = document.getElementById('sidangTargetWA');
+                
+                const html = '<option value="">-- Pilih Grup Tujuan --</option>' + 
+                    groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+                
+                selectWa.innerHTML = html;
+                selectSidang.innerHTML = html;
+
             } catch (err) { console.error(err); }
         }
 
@@ -421,6 +434,8 @@
             if (action === 'copy') {
                 navigator.clipboard.writeText(text).then(() => Swal.fire({ toast: true, position: 'top', showConfirmButton: false, timer: 1500, icon: 'success', title: 'Disalin' }));
             } else if (action === 'send') {
+                // Switch tab
+                switchTab('wa');
                 document.getElementById('message').value = text;
                 document.getElementById('message').focus();
             }
@@ -445,7 +460,12 @@
         });
 
 
-        // --- JADWAL SIDANG LOGIC ---
+        // --- JADWAL SIDANG LOGIC & PDF GENERATION ---
+        const cleanHTML = (str) => {
+            if (!str) return '-';
+            return str.replace(/<br\s*\/?>/gi, '\n').replace(/&nbsp;/g, ' ').replace(/<\/?[^>]+(>|$)/g, "").trim();
+        };
+
         async function fetchJadwalSidang() {
             const date = document.getElementById('tanggalSidang').value;
             const category = document.getElementById('sidangKategori').value;
@@ -453,7 +473,9 @@
             const welcome = document.getElementById('sidang-welcome');
             const results = document.getElementById('sidang-results');
             const tbody = document.getElementById('tbody-sidang');
+            const headerRow = document.getElementById('tabel-header-row');
             const btnPdf = document.getElementById('btnExportPDF');
+            const btnWa = document.getElementById('btnSendWA');
 
             if (!date) return Swal.fire({icon:'warning', text:'Pilih tanggal terlebih dahulu.'});
 
@@ -461,6 +483,7 @@
             results.classList.add('hidden');
             loader.classList.remove('hidden');
             btnPdf.disabled = true;
+            btnWa.disabled = true;
             currentKategori = category;
 
             try {
@@ -473,30 +496,35 @@
                 document.getElementById('label-kategori').className = `px-2 py-0.5 rounded text-[10px] uppercase tracking-wider text-white ${category==='pidana'?'bg-red-500':'bg-green-500'}`;
                 document.getElementById('label-count').textContent = `${list.length} Perkara`;
 
+                // Set Header Table
+                if(category === 'pidana') {
+                    headerRow.innerHTML = `<th class="px-4 py-4 w-10 text-center">No</th><th class="px-4 py-4 whitespace-nowrap">Tanggal</th><th class="px-4 py-4 whitespace-nowrap">No. Perkara</th><th class="px-4 py-4">Ruang</th><th class="px-4 py-4 min-w-[200px]">Agenda</th><th class="px-4 py-4">Penuntut Umum</th><th class="px-4 py-4">Terdakwa</th><th class="px-4 py-4 min-w-[150px]">Majelis Hakim</th><th class="px-4 py-4">Panitera</th><th class="px-4 py-4">Ket.</th>`;
+                } else {
+                    headerRow.innerHTML = `<th class="px-4 py-4 w-10 text-center">No</th><th class="px-4 py-4 whitespace-nowrap">Tanggal</th><th class="px-4 py-4 whitespace-nowrap">No. Perkara</th><th class="px-4 py-4">Ruang</th><th class="px-4 py-4 min-w-[200px]">Agenda</th><th class="px-4 py-4">Penggugat</th><th class="px-4 py-4">Tergugat</th><th class="px-4 py-4 min-w-[150px]">Majelis Hakim</th><th class="px-4 py-4">Panitera</th><th class="px-4 py-4">Ket.</th>`;
+                }
+
                 tbody.innerHTML = '';
                 if(list.length === 0) {
-                     tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-12 text-center text-muted-foreground text-sm">Tidak ada jadwal ${category} pada tanggal ini.</td></tr>`;
+                     tbody.innerHTML = `<tr><td colspan="10" class="px-6 py-12 text-center text-muted-foreground text-sm">Tidak ada jadwal ${category} pada tanggal ini.</td></tr>`;
                 } else {
                     list.forEach((item, idx) => {
-                        const pihak = category === 'pidana' 
-                            ? `<div class='font-medium text-slate-800'>${item.pihak1}</div><div class='text-xs text-muted-foreground'>vs ${item.pihak2||'-'}</div>`
-                            : `<div class='font-medium text-slate-800'>${item.pihak1}</div><div class='text-xs text-muted-foreground'>Lawan: ${item.pihak2||'-'}</div>`;
-                        
-                        const hakim = `<div class='font-medium text-slate-700 whitespace-pre-line leading-tight'>${item.namaHakim}</div><div class='text-[10px] text-muted-foreground mt-1'>PP: ${item.namaPanitera}</div>`;
-
                         const row = `
-                            <tr class="hover:bg-muted/30 transition-colors group">
-                                <td class="px-6 py-4 text-center text-muted-foreground">${idx+1}</td>
-                                <td class="px-6 py-4 font-medium text-foreground">${item.noPerkara}</td>
-                                <td class="px-6 py-4"><span class="px-2 py-1 bg-slate-100 rounded text-xs font-semibold text-slate-600 border border-slate-200">${item.ruangSidang}</span></td>
-                                <td class="px-6 py-4 text-slate-600 max-w-xs leading-relaxed">${item.agendaSidang}</td>
-                                <td class="px-6 py-4">${pihak}</td>
-                                <td class="px-6 py-4 text-xs">${hakim}</td>
-                            </tr>
-                        `;
+                            <tr class="hover:bg-muted/30 transition-colors group border-b border-border/50">
+                                <td class="px-4 py-4 text-center text-muted-foreground">${idx+1}</td>
+                                <td class="px-4 py-4 whitespace-nowrap">${date}</td>
+                                <td class="px-4 py-4 font-medium text-foreground">${item.noPerkara}</td>
+                                <td class="px-4 py-4">${item.ruangSidang}</td>
+                                <td class="px-4 py-4 text-slate-600 leading-relaxed">${item.agendaSidang}</td>
+                                <td class="px-4 py-4">${item.pihak1}</td>
+                                <td class="px-4 py-4">${item.pihak2||'-'}</td>
+                                <td class="px-4 py-4 text-xs">${item.namaHakim.replace(/\n/g, '<br>')}</td>
+                                <td class="px-4 py-4 text-xs">${item.namaPanitera}</td>
+                                <td class="px-4 py-4"></td>
+                            </tr>`;
                         tbody.insertAdjacentHTML('beforeend', row);
                     });
                     btnPdf.disabled = false;
+                    btnWa.disabled = false;
                 }
 
                 loader.classList.add('hidden');
@@ -508,107 +536,124 @@
             }
         }
 
-        function exportPDF() {
-            if(currentSidangData.length === 0) return;
+        // --- REUSABLE PDF GENERATOR ---
+        function createSidangPDFDoc() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('landscape', 'pt', 'legal');
-            
-            // Format Date
             const dateInput = document.getElementById('tanggalSidang').value;
+            
+            // Format Tanggal Lokal (misal: Senin, 20 Mei 2024)
             const dateObj = new Date(dateInput);
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             const formattedDate = dateObj.toLocaleDateString('id-ID', options);
 
             const title = `JADWAL SIDANG ${currentKategori.toUpperCase()}`;
-            const headerColor = currentKategori === 'pidana' ? [220, 38, 38] : [22, 163, 74];
+            const color = currentKategori === 'pidana' ? [225, 57, 57] : [109, 235, 104];
+            const textColor = currentKategori === 'pidana' ? [255, 255, 255] : [0, 0, 0];
 
-            doc.setFont("helvetica", "bold");
             doc.setFontSize(18);
             doc.text(title, 40, 40);
-            
-            doc.setFont("helvetica", "normal");
-            doc.setFontSize(11);
+            doc.setFontSize(10);
             doc.text(`Tanggal: ${formattedDate}`, 40, 60);
 
-            // Helper to clean HTML tags for PDF
-            const cleanHTML = (str) => {
-                if (!str) return '-';
-                return str
-                    .replace(/<br\s*\/?>/gi, '\n') // Replace <br> with newline
-                    .replace(/&nbsp;/g, ' ')       // Replace &nbsp;
-                    .replace(/<\/?[^>]+(>|$)/g, "") // Strip other tags
-                    .trim(); 
-            };
-
-            // Map data for clean PDF output
             const bodyData = currentSidangData.map((item, index) => {
-                const p1 = cleanHTML(item.pihak1);
-                const p2 = cleanHTML(item.pihak2);
-                const hakim = cleanHTML(item.namaHakim);
-                const panitera = cleanHTML(item.namaPanitera);
-
-                let pihakStr = "";
-                if (currentKategori === 'pidana') {
-                    pihakStr = `PU:\n${p1}\n\nTerdakwa:\n${p2}`;
-                } else {
-                    pihakStr = `Penggugat:\n${p1}\n\nTergugat:\n${p2}`;
-                }
-                const hakimStr = `Majelis:\n${hakim}\n\nPP: ${panitera}`;
-                
                 return [
                     index + 1,
+                    dateInput,
                     item.noPerkara,
                     item.ruangSidang,
-                    item.agendaSidang,
-                    pihakStr,
-                    hakimStr
+                    cleanHTML(item.agendaSidang),
+                    cleanHTML(item.pihak1),
+                    cleanHTML(item.pihak2),
+                    cleanHTML(item.namaHakim),
+                    cleanHTML(item.namaPanitera),
+                    ""
                 ];
             });
 
+            const headers = currentKategori === 'pidana' 
+                ? [['No', 'Tanggal', 'No. Perkara', 'Ruang Sidang', 'Agenda', 'Penuntut Umum', 'Terdakwa', 'Majelis Hakim', 'Panitera Pengganti', 'Keterangan']]
+                : [['No', 'Tanggal', 'No. Perkara', 'Ruang Sidang', 'Agenda', 'Penggugat', 'Tergugat', 'Majelis Hakim', 'Panitera Pengganti', 'Keterangan']];
+
             doc.autoTable({
-                head: [['No', 'No. Perkara', 'Ruang', 'Agenda', 'Para Pihak', 'Majelis Hakim & PP']],
+                head: headers,
                 body: bodyData,
-                startY: 80,
+                startY: 70,
                 theme: 'grid',
-                headStyles: { 
-                    fillColor: headerColor, 
-                    textColor: 255, 
-                    fontSize: 11,
-                    fontStyle: 'bold', 
-                    halign: 'center',
-                    valign: 'middle' 
-                },
-                styles: { 
-                    fontSize: 9, 
-                    cellPadding: 6, 
-                    valign: 'top',
-                    overflow: 'linebreak',
-                    lineColor: [200, 200, 200]
-                },
-                columnStyles: {
-                    0: { cellWidth: 30, halign: 'center' },
-                    1: { cellWidth: 100, fontStyle: 'bold' },
-                    2: { cellWidth: 60, halign: 'center' },
-                    3: { cellWidth: 'auto' }, // Agenda flexible
-                    4: { cellWidth: 160 },
-                    5: { cellWidth: 160 }
-                },
-                alternateRowStyles: { fillColor: [249, 250, 251] },
-                margin: { top: 80 }
+                headStyles: { fillColor: color, textColor: textColor, fontSize: 10 },
+                styles: { fontSize: 8, cellPadding: 4, valign: 'top', overflow: 'linebreak' },
+                columnStyles: { 4: { cellWidth: 120 }, 7: { cellWidth: 150 } },
             });
-
-            // Page Numbers Footer
-            const pageCount = doc.internal.getNumberOfPages();
-            for(let i = 1; i <= pageCount; i++) {
-                doc.setPage(i);
-                doc.setFontSize(8);
-                doc.text('Dicetak dari Sistem Informasi Jadwal Sidang', 40, doc.internal.pageSize.height - 20);
-                doc.text('Halaman ' + i + ' dari ' + pageCount, doc.internal.pageSize.width - 40, doc.internal.pageSize.height - 20, { align: 'right' });
-            }
-
-            doc.save(`${title.replace(/ /g, '_')}_${dateInput}.pdf`);
+            
+            return { doc, title: `${title.replace(/ /g, '_')}_${dateInput}` };
         }
 
+        function exportPDF() {
+            if(currentSidangData.length === 0) return;
+            const { doc, title } = createSidangPDFDoc();
+            doc.save(`${title}.pdf`);
+        }
+
+        // Helper function for ArrayBuffer to Base64
+        function arrayBufferToBase64(buffer) {
+            let binary = '';
+            const bytes = new Uint8Array(buffer);
+            const len = bytes.byteLength;
+            for (let i = 0; i < len; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return window.btoa(binary);
+        }
+
+        // --- SEND MEDIA TO WA ---
+        async function sendSidangToWA() {
+            const target = document.getElementById('sidangTargetWA').value;
+            if(!target) return Swal.fire({icon:'warning', text:'Pilih grup tujuan WA terlebih dahulu.'});
+            if(currentSidangData.length === 0) return;
+
+            const btn = document.getElementById('btnSendWA');
+            btn.disabled = true; 
+            btn.innerHTML = '<span class="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"></span> Sending...';
+
+            try {
+                // 1. Get ArrayBuffer directly (Bypassing Blob/DataURIString quirks)
+                const { doc, title } = createSidangPDFDoc();
+                const buffer = doc.output('arraybuffer');
+                
+                // 2. Convert to Base64
+                const base64String = arrayBufferToBase64(buffer);
+                const cleanDataUri = `data:application/pdf;base64,${base64String}`;
+
+                const date = document.getElementById('tanggalSidang').value;
+                const caption = `Jadwal Sidang ${currentKategori.toUpperCase()} - ${date}`;
+                const fileName = `${title}.pdf`;
+
+                // 3. Send to Media Endpoint
+                const payload = {
+                    userId: userId,
+                    to: target,
+                    fileUrl: cleanDataUri, 
+                    caption: caption,
+                    fileName: fileName, // Send explicit fileName
+                    mimetype: 'application/pdf'
+                };
+
+                await fetch(`${API_WA}/send-media`, { 
+                    method: "POST", 
+                    headers: { "Content-Type": "application/json" }, 
+                    body: JSON.stringify(payload) 
+                });
+
+                Swal.fire({icon:'success', title:'Terkirim', text:'File PDF berhasil dikirim ke WhatsApp.'});
+
+            } catch (err) {
+                console.error(err);
+                Swal.fire({icon:'error', title:'Gagal', text:'Gagal mengirim PDF. Coba lagi nanti.'});
+            } finally {
+                btn.disabled = false; 
+                btn.innerHTML = '<i class="fab fa-whatsapp"></i> Kirim PDF ke WA';
+            }
+        }
 
         // --- INIT ---
         document.addEventListener('DOMContentLoaded', () => {
