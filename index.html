@@ -1,170 +1,267 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="scroll-smooth">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard WA & Drive</title>
+    <title>Dashboard Kirim.Chat</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts: Inter (Font yang sama dengan referensi) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-        
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'], // Font utama
+                    },
+                    colors: {
+                        border: "hsl(var(--border))",
+                        input: "hsl(var(--input))",
+                        ring: "hsl(var(--ring))",
+                        background: "hsl(var(--background))",
+                        foreground: "hsl(var(--foreground))",
+                        primary: {
+                            DEFAULT: "hsl(var(--primary))",
+                            foreground: "hsl(var(--primary-foreground))",
+                        },
+                        muted: {
+                            DEFAULT: "hsl(var(--muted))",
+                            foreground: "hsl(var(--muted-foreground))",
+                        },
+                        accent: {
+                            DEFAULT: "hsl(var(--accent))",
+                            foreground: "hsl(var(--accent-foreground))",
+                        },
+                    },
+                    borderRadius: {
+                        lg: "var(--radius)",
+                        md: "calc(var(--radius) - 2px)",
+                        sm: "calc(var(--radius) - 4px)",
+                    },
+                }
+            }
+        }
+    </script>
 
-        .fade-in { animation: fadeIn 0.5s ease-out; }
+    <style>
+        :root {
+            --background: 0 0% 100%;
+            --foreground: 240 10% 3.9%;
+            --card: 0 0% 100%;
+            --card-foreground: 240 10% 3.9%;
+            --popover: 0 0% 100%;
+            --popover-foreground: 240 10% 3.9%;
+            --primary: 240 5.9% 10%; /* Zinc-900 (Hitam) */
+            --primary-foreground: 0 0% 98%;
+            --muted: 240 4.8% 95.9%;
+            --muted-foreground: 240 3.8% 46.1%;
+            --accent: 240 4.8% 95.9%;
+            --accent-foreground: 240 5.9% 10%;
+            --border: 240 5.9% 90%;
+            --input: 240 5.9% 90%;
+            --ring: 240 5.9% 10%;
+            --radius: 1rem; /* 16px border radius (rounded-2xl/3xl) */
+        }
+
+        /* Dot Pattern Background */
+        .bg-dot-pattern {
+            background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        /* Glass Effect */
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .fade-in { animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e4e4e7; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a1a1aa; }
     </style>
 </head>
 
-<body class="text-slate-800">
-
-    <!-- Navbar -->
-    <nav class="bg-white shadow-sm border-b border-slate-200 fixed w-full z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0 flex items-center text-blue-600">
-                        <i class="material-icons text-3xl mr-2">chat</i>
-                        <span class="font-bold text-xl tracking-tight">WA & Drive Dash</span>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <!-- Connection Status Badge -->
-                    <div id="connectionStatus" class="flex items-center px-3 py-1 rounded-full bg-slate-100 text-slate-500 text-sm font-medium border border-slate-200 transition-colors duration-300">
-                        <span class="w-2 h-2 rounded-full bg-slate-400 mr-2 animate-pulse"></span>
-                        Checking...
-                    </div>
-                </div>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Main Layout -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-10">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-
-            <!-- Sidebar / Menu (Simple List for now) -->
-            <div class="lg:col-span-3">
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden sticky top-24">
-                    <div class="p-4 bg-slate-50 border-b border-slate-100 font-semibold text-slate-700">
-                        Menu Aplikasi
-                    </div>
-                    <nav class="p-2 space-y-1">
-                        <a href="#" class="flex items-center px-4 py-3 bg-blue-50 text-blue-700 rounded-lg font-medium transition-colors">
-                            <i class="material-icons text-sm mr-3">dashboard</i>
-                            Dashboard Utama
-                        </a>
-                        <!-- Placeholder menu items -->
-                        <a href="/js.html" class="flex items-center px-4 py-3 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors">
-                    
-                            <i class="material-icons text-sm mr-3 text-slate-400">settings</i>
-                            Jadwal sidang
-                        </a>
-                    </nav>
-                    <div class="p-4 border-t border-slate-100 text-xs text-slate-400 text-center">
-                        &copy; 2024 M Asran
-                    </div>
-                </div>
-            </div>
-
-            <!-- Content Area -->
-            <div class="lg:col-span-9 grid grid-cols-1 gap-8">
-                
-                <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
-                    <!-- Left Column: Send Message -->
-                    <div class="md:col-span-5">
-                        <div class="bg-white rounded-xl shadow-lg shadow-slate-200/50 border border-slate-100 overflow-hidden h-full">
-                            <div class="bg-slate-50/80 backdrop-blur-sm px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                                <h3 class="font-bold text-slate-700 flex items-center">
-                                    <i class="fab fa-whatsapp text-green-500 mr-2 text-lg"></i> Kirim Pesan
-                                </h3>
-                            </div>
-                            <div class="p-6">
-                                <form id="kirimPesanForm" class="space-y-5">
-                                    <div>
-                                        <label for="penerima" class="block text-sm font-semibold text-slate-600 mb-2">Penerima (Grup)</label>
-                                        <div class="relative">
-                                            <select id="penerima" required class="w-full pl-3 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all appearance-none cursor-pointer">
-                                                <option value="">Memuat grup...</option>
-                                            </select>
-                                            <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-400">
-                                                <i class="fas fa-chevron-down text-xs"></i>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div>
-                                        <label for="message" class="block text-sm font-semibold text-slate-600 mb-2">Isi Pesan</label>
-                                        <textarea id="message" rows="5" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all resize-none" placeholder="Tulis pesan Anda di sini..."></textarea>
-                                    </div>
-
-                                    <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2">
-                                        <i class="fas fa-paper-plane text-sm"></i> Kirim Sekarang
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Right Column: Google Drive Info -->
-                    <div class="md:col-span-7">
-                        <div class="bg-white rounded-xl shadow-lg shadow-slate-200/50 border border-slate-100 overflow-hidden flex flex-col h-full">
-                            <div class="bg-slate-50/80 backdrop-blur-sm px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                                <h3 class="font-bold text-slate-700 flex items-center">
-                                    <i class="fab fa-google-drive text-blue-500 mr-2 text-lg"></i> Google Drive Hari Ini
-                                </h3>
-                                <!-- Storage Info Small -->
-                                <div id="storageBadge" class="hidden text-xs bg-white border border-slate-200 px-2 py-1 rounded text-slate-500">
-                                    Loading...
-                                </div>
-                            </div>
-
-                            <!-- Storage Progress Bar -->
-                            <div class="px-6 pt-6 pb-2">
-                                <div class="flex justify-between text-xs font-medium text-slate-500 mb-1">
-                                    <span>Penyimpanan</span>
-                                    <span id="storageText">Memuat info...</span>
-                                </div>
-                                <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
-                                    <div id="storageProgress" class="bg-blue-500 h-2.5 rounded-full transition-all duration-1000 ease-out" style="width: 0%"></div>
-                                </div>
-                            </div>
-
-                            <!-- File List -->
-                            <div id="gdriveData" class="p-6 space-y-3 overflow-y-auto max-h-[500px] flex-grow">
-                                <!-- Loader -->
-                                <div class="flex justify-center py-10">
-                                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
+<body class="bg-background text-foreground font-sans min-h-screen flex flex-col antialiased bg-dot-pattern relative selection:bg-black selection:text-white">
+    
+    <!-- Background Gradient Glows (Aesthetic) -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div class="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-blue-500/5 blur-[100px]"></div>
+        <div class="absolute top-[20%] -right-[10%] w-[40%] h-[40%] rounded-full bg-purple-500/5 blur-[100px]"></div>
     </div>
 
+    <!-- Header / Navbar (Pill Shape style) -->
+    <header class="fixed top-4 left-0 right-0 z-50 flex justify-center px-4">
+        <nav class="glass w-full max-w-5xl h-14 rounded-full flex items-center justify-between px-6 shadow-sm hover:shadow-md transition-all duration-300">
+            <!-- Logo -->
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full bg-black flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-black/20">K</div>
+                <span class="font-bold text-sm tracking-tight hidden sm:block">Kirim.Chat</span>
+            </div>
+
+            <!-- Status Indicator -->
+            <div class="flex items-center gap-3">
+                <div id="connectionStatus" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 border border-border text-xs font-medium text-muted-foreground transition-all">
+                    <span class="relative flex h-2 w-2">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-slate-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2 w-2 bg-slate-500"></span>
+                    </span>
+                    Connecting...
+                </div>
+                
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 border border-white shadow-sm flex items-center justify-center text-blue-700 font-bold text-xs">
+                    A
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 relative z-10 pt-28 pb-12 px-4">
+        <div class="max-w-6xl mx-auto">
+            
+            <!-- Page Title -->
+            <div class="mb-10 text-center space-y-2 fade-in">
+                <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-foreground">Dashboard</h1>
+                <p class="text-muted-foreground text-sm md:text-base max-w-lg mx-auto">Kelola pesan WhatsApp dan file Google Drive Anda dalam satu tampilan terintegrasi.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">
+                
+                <!-- Left Column: WA Sender -->
+                <div class="md:col-span-5 flex flex-col gap-6 fade-in" style="animation-delay: 100ms;">
+                    <!-- Card WA -->
+                    <div class="glass rounded-[2rem] p-1 border border-white/20 shadow-xl shadow-slate-200/40 bg-white/60">
+                        <div class="bg-white/80 rounded-[1.8rem] p-6 h-full border border-border/50">
+                            <div class="flex items-center justify-between mb-6">
+                                <h3 class="font-semibold text-lg flex items-center gap-2">
+                                    <div class="p-2 bg-green-50 text-green-600 rounded-xl">
+                                        <i class="fab fa-whatsapp text-xl"></i>
+                                    </div>
+                                    Kirim Pesan
+                                </h3>
+                                <button class="text-muted-foreground hover:text-foreground transition-colors">
+                                    <i class="fas fa-ellipsis-h"></i>
+                                </button>
+                            </div>
+
+                            <form id="kirimPesanForm" class="space-y-5">
+                                <div class="space-y-2">
+                                    <label for="penerima" class="text-xs font-medium uppercase tracking-wider text-muted-foreground ml-1">Penerima</label>
+                                    <div class="relative group">
+                                        <select id="penerima" required class="w-full pl-4 pr-10 py-3 bg-muted/30 hover:bg-muted/50 border border-border rounded-2xl text-sm focus:ring-2 focus:ring-black/5 focus:border-black focus:bg-white transition-all appearance-none cursor-pointer outline-none">
+                                            <option value="">Memuat data...</option>
+                                        </select>
+                                        <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-muted-foreground group-hover:text-foreground transition-colors">
+                                            <i class="fas fa-chevron-down text-xs"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="space-y-2">
+                                    <label for="message" class="text-xs font-medium uppercase tracking-wider text-muted-foreground ml-1">Pesan</label>
+                                    <textarea id="message" rows="6" class="w-full p-4 bg-muted/30 hover:bg-muted/50 border border-border rounded-2xl text-sm focus:ring-2 focus:ring-black/5 focus:border-black focus:bg-white transition-all resize-none outline-none placeholder:text-muted-foreground/50" placeholder="Ketik pesan Anda disini..."></textarea>
+                                </div>
+
+                                <button type="submit" class="group relative w-full h-12 bg-primary text-primary-foreground font-medium rounded-2xl shadow-lg shadow-black/5 hover:shadow-black/10 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 overflow-hidden">
+                                    <span class="relative z-10 flex items-center justify-center gap-2">
+                                        Kirim Sekarang <i class="fas fa-paper-plane text-xs group-hover:translate-x-1 transition-transform"></i>
+                                    </span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Mini Stats (Optional Decorative) -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-white rounded-3xl p-5 border border-border shadow-sm flex flex-col items-center justify-center text-center gap-1">
+                            <span class="text-3xl font-bold tracking-tighter">24</span>
+                            <span class="text-xs text-muted-foreground font-medium">Pesan Terkirim</span>
+                        </div>
+                        <div class="bg-white rounded-3xl p-5 border border-border shadow-sm flex flex-col items-center justify-center text-center gap-1">
+                            <span class="text-3xl font-bold tracking-tighter text-green-600">Active</span>
+                            <span class="text-xs text-muted-foreground font-medium">Status Server</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Drive & Files -->
+                <div class="md:col-span-7 flex flex-col gap-6 fade-in" style="animation-delay: 200ms;">
+                    
+                    <!-- Storage Card -->
+                    <div class="glass rounded-[2rem] p-6 border border-white/20 shadow-sm bg-white/40 backdrop-blur-md relative overflow-hidden">
+                         <!-- Decorative BG -->
+                         <div class="absolute -right-10 -top-10 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl"></div>
+
+                        <div class="flex items-center justify-between mb-4 relative z-10">
+                            <h3 class="font-semibold text-lg flex items-center gap-2">
+                                <div class="p-2 bg-blue-50 text-blue-600 rounded-xl">
+                                    <i class="fab fa-google-drive text-xl"></i>
+                                </div>
+                                Penyimpanan
+                            </h3>
+                            <div id="storageBadge" class="hidden px-3 py-1 bg-white rounded-full border border-border text-xs font-medium shadow-sm">Loading...</div>
+                        </div>
+
+                        <div class="relative z-10">
+                            <div class="flex justify-between text-xs font-medium text-muted-foreground mb-2">
+                                <span id="storageText">Memuat kapasitas...</span>
+                            </div>
+                            <div class="w-full bg-white/50 border border-white/60 rounded-full h-3 p-0.5">
+                                <div id="storageProgress" class="bg-gradient-to-r from-blue-500 to-indigo-500 h-full rounded-full transition-all duration-1000 ease-out shadow-sm" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- File List -->
+                    <div class="bg-white rounded-[2rem] border border-border shadow-sm flex-1 flex flex-col overflow-hidden min-h-[400px]">
+                        <div class="p-6 border-b border-border/50 bg-muted/20 flex items-center justify-between">
+                            <h3 class="font-semibold text-foreground">File Terbaru</h3>
+                            <button onclick="fetchGDriveData()" class="text-xs font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-1">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                        </div>
+                        
+                        <div id="gdriveData" class="p-4 space-y-3 overflow-y-auto flex-1">
+                            <!-- Loader -->
+                            <div class="flex flex-col items-center justify-center h-40 gap-3 text-muted-foreground">
+                                <div class="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent"></div>
+                                <span class="text-xs font-medium">Memuat data drive...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-8 text-center text-sm text-muted-foreground">
+        <p>© 2024 Kirim.Chat. All rights reserved.</p>
+    </footer>
+
+    <!-- Scripts Logic -->
     <script>
-        // Configuration
+        // --- App Configuration ---
         const userId = "patrolwaa1";
         const API_WA = "https://wa-api.pnblk.my.id";
         const API_DRIVE = "https://gdrivetoday.vercel.app/gdrive";
 
-        // DOM Elements
         const els = {
             connectionStatus: document.getElementById('connectionStatus'),
             storageText: document.getElementById('storageText'),
@@ -176,49 +273,44 @@
             messageInput: document.getElementById('message')
         };
 
-        // --- Helper Functions ---
-        
+        // --- UI Updates ---
         const updateStatusBadge = (status) => {
             const isConnected = status === 'connected';
-            els.connectionStatus.className = `flex items-center px-3 py-1 rounded-full text-sm font-medium border transition-colors duration-300 ${
-                isConnected 
-                ? 'bg-green-100 text-green-700 border-green-200' 
-                : 'bg-red-100 text-red-700 border-red-200'
-            }`;
+            const colorClass = isConnected ? 'text-green-600 bg-green-50/50 border-green-200' : 'text-red-600 bg-red-50/50 border-red-200';
+            const dotColor = isConnected ? 'bg-green-500' : 'bg-red-500';
+            const pingColor = isConnected ? 'bg-green-400' : 'bg-red-400';
+            
+            els.connectionStatus.className = `flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-medium transition-all ${colorClass}`;
             els.connectionStatus.innerHTML = `
-                <span class="w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'} mr-2 ${isConnected ? '' : 'animate-pulse'}"></span>
-                ${isConnected ? 'Terhubung' : 'Terputus'}
+                <span class="relative flex h-2 w-2">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full ${pingColor} opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-2 w-2 ${dotColor}"></span>
+                </span>
+                ${isConnected ? 'Connected' : 'Disconnected'}
             `;
         };
 
-        // --- API Fetching Functions ---
-
-        // 1. Fetch Storage Info
+        // --- API Functions ---
         async function fetchStorageInfo() {
             try {
                 const res = await fetch(`${API_DRIVE}/info`);
                 const data = await res.json();
-                
                 const total = parseFloat(data.totalStorageGB);
                 const used = parseFloat(data.usedStorageGB);
                 const percent = ((used / total) * 100).toFixed(1);
 
-                els.storageText.textContent = `${used} GB terpakai dari ${total} GB`;
-                els.storageBadge.textContent = `${percent}% Penuh`;
+                els.storageText.textContent = `${used} GB used of ${total} GB`;
+                els.storageBadge.textContent = `${percent}%`;
                 els.storageBadge.classList.remove('hidden');
                 els.storageProgress.style.width = `${percent}%`;
                 
-                // Warna progress bar berubah jika penuh
-                if(percent > 90) els.storageProgress.classList.replace('bg-blue-500', 'bg-red-500');
-                else els.storageProgress.classList.add('bg-blue-500');
-
+                if(percent > 90) els.storageProgress.classList.replace('from-blue-500', 'from-red-500');
             } catch (err) {
                 console.error("Storage Error:", err);
-                els.storageText.textContent = "Gagal memuat info penyimpanan";
+                els.storageText.textContent = "Unavailable";
             }
         }
 
-        // 2. Fetch WA Groups
         async function fetchGroups() {
             try {
                 const res = await fetch(`${API_WA}/groups/${userId}`);
@@ -237,7 +329,6 @@
             }
         }
 
-        // 3. Fetch Connection Status
         async function fetchStatus() {
             try {
                 const res = await fetch(`${API_WA}/status/${userId}`);
@@ -248,7 +339,6 @@
             }
         }
 
-        // 4. Fetch Google Drive Folders
         async function fetchGDriveData() {
             try {
                 const res = await fetch(API_DRIVE);
@@ -258,42 +348,47 @@
                 
                 if(items.length === 0) {
                     els.gdriveContainer.innerHTML = `
-                        <div class="text-center py-8 text-slate-400">
-                            <i class="far fa-folder-open text-3xl mb-2"></i>
-                            <p class="text-sm">Tidak ada folder hari ini.</p>
+                        <div class="flex flex-col items-center justify-center h-48 text-muted-foreground/50">
+                            <div class="bg-muted/30 p-4 rounded-full mb-3">
+                                <i class="far fa-folder-open text-3xl"></i>
+                            </div>
+                            <p class="text-sm">Folder kosong hari ini.</p>
                         </div>`;
                     return;
                 }
 
                 items.forEach((item, index) => {
                     const link = `https://drive.google.com/drive/folders/${item.id}`;
+                    
+                    // Card Style for Files
                     const card = document.createElement('div');
-                    card.className = 'bg-white border border-slate-200 rounded-lg p-4 hover:shadow-md transition-shadow fade-in';
-                    card.style.animationDelay = `${index * 100}ms`;
+                    card.className = 'group relative bg-white border border-border/60 hover:border-black/20 rounded-2xl p-4 transition-all duration-300 hover:shadow-md hover:shadow-slate-200/50 fade-in';
+                    card.style.animationDelay = `${index * 50}ms`;
                     
                     card.innerHTML = `
-                        <div class="flex items-start justify-between mb-3">
-                            <div class="flex items-center">
-                                <div class="bg-blue-100 p-2 rounded-lg text-blue-600 mr-3">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="flex items-center gap-3 overflow-hidden">
+                                <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
                                     <i class="fas fa-folder"></i>
                                 </div>
-                                <div>
-                                    <h4 class="text-sm font-bold text-slate-800 line-clamp-1" title="${item.name}">${item.name}</h4>
-                                    <span class="text-xs text-slate-400">Google Drive Folder</span>
+                                <div class="min-w-0">
+                                    <h4 class="text-sm font-semibold text-foreground truncate group-hover:text-blue-600 transition-colors">${item.name}</h4>
+                                    <p class="text-[10px] text-muted-foreground uppercase tracking-wide font-medium mt-0.5">Google Drive</p>
                                 </div>
                             </div>
-                            <a href="${link}" target="_blank" class="text-slate-400 hover:text-blue-600 transition-colors">
-                                <i class="fas fa-external-link-alt text-sm"></i>
+                            <a href="${link}" target="_blank" class="w-8 h-8 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:bg-black hover:text-white hover:border-black transition-all">
+                                <i class="fas fa-arrow-up-right-from-square text-xs"></i>
                             </a>
                         </div>
-                        <div class="flex gap-2">
+                        
+                        <div class="mt-4 pt-4 border-t border-border/50 flex gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
                             <button onclick="handleAction('send', '${item.name}', '${link}')" 
-                                class="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold py-2 rounded transition-colors">
-                                <i class="fab fa-whatsapp mr-1"></i> Kirim ke WA
+                                class="flex-1 h-9 flex items-center justify-center gap-2 bg-muted/50 hover:bg-green-50 text-muted-foreground hover:text-green-700 text-xs font-semibold rounded-lg transition-colors">
+                                <i class="fab fa-whatsapp"></i> Kirim
                             </button>
                             <button onclick="handleAction('copy', '${item.name}', '${link}')" 
-                                class="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-600 text-xs font-semibold py-2 rounded transition-colors">
-                                <i class="far fa-copy mr-1"></i> Salin
+                                class="flex-1 h-9 flex items-center justify-center gap-2 bg-muted/50 hover:bg-blue-50 text-muted-foreground hover:text-blue-700 text-xs font-semibold rounded-lg transition-colors">
+                                <i class="far fa-copy"></i> Salin
                             </button>
                         </div>
                     `;
@@ -302,63 +397,48 @@
 
             } catch (err) {
                 console.error("Drive Data Error:", err);
-                els.gdriveContainer.innerHTML = `
-                    <div class="text-center py-8 text-red-400 bg-red-50 rounded-lg">
-                        <p class="text-sm font-medium">Gagal memuat data Drive.</p>
-                        <button onclick="fetchGDriveData()" class="mt-2 text-xs underline hover:text-red-600">Coba Lagi</button>
-                    </div>`;
+                els.gdriveContainer.innerHTML = `<div class="p-4 text-center text-red-400 text-xs bg-red-50 rounded-xl border border-red-100">Gagal memuat data. <button onclick="fetchGDriveData()" class="underline font-bold ml-1">Coba lagi</button></div>`;
             }
         }
 
-        // --- Interaction Handlers ---
-
         window.handleAction = (action, name, link) => {
             const text = `*${name}*\n${link}`;
-            
             if (action === 'copy') {
-                navigator.clipboard.writeText(text)
-                    .then(() => {
-                        const Toast = Swal.mixin({
-                            toast: true, position: 'top-end', showConfirmButton: false, timer: 2000,
-                            timerProgressBar: true,
-                            didOpen: (toast) => {
-                                toast.addEventListener('mouseenter', Swal.stopTimer)
-                                toast.addEventListener('mouseleave', Swal.resumeTimer)
-                            }
-                        });
-                        Toast.fire({ icon: 'success', title: 'Berhasil disalin!' });
-                    })
-                    .catch(() => Swal.fire('Oops', 'Gagal menyalin teks', 'error'));
+                navigator.clipboard.writeText(text).then(() => {
+                    const Toast = Swal.mixin({
+                        toast: true, position: 'top-center', showConfirmButton: false, timer: 1500,
+                        customClass: { popup: 'rounded-2xl text-sm font-medium' }
+                    });
+                    Toast.fire({ icon: 'success', title: 'Link berhasil disalin' });
+                });
             } else if (action === 'send') {
-                // Populate textarea
                 els.messageInput.value = text;
-                // Smooth scroll to form (mobile friendly)
-                els.messageForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                // Focus textarea
                 els.messageInput.focus();
-                // Optional flash effect
-                els.messageInput.classList.add('ring-2', 'ring-green-500');
-                setTimeout(() => els.messageInput.classList.remove('ring-2', 'ring-green-500'), 1000);
+                // Scroll to top mobile
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         };
 
-        // Handle Form Submit
         els.messageForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
             const to = els.penerimaSelect.value;
             const message = els.messageInput.value;
             const submitBtn = els.messageForm.querySelector('button[type="submit"]');
-            const originalBtnText = submitBtn.innerHTML;
+            const originalBtnContent = submitBtn.innerHTML;
 
             if (!to || !message.trim()) {
-                Swal.fire({ icon: 'warning', title: 'Data Belum Lengkap', text: 'Silakan pilih grup penerima dan isi pesan.' });
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Data Belum Lengkap',
+                    text: 'Silakan pilih grup dan isi pesan terlebih dahulu.',
+                    confirmButtonColor: '#000',
+                    customClass: { popup: 'rounded-3xl', confirmButton: 'rounded-xl px-6' }
+                });
                 return;
             }
 
-            // Loading State
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim...';
+            submitBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Mengirim...';
 
             try {
                 const res = await fetch(`${API_WA}/send-text`, {
@@ -367,29 +447,35 @@
                     body: JSON.stringify({ userId, to, message, typing: true })
                 });
                 const result = await res.json();
-
-                Swal.fire({ icon: 'success', title: 'Terkirim!', text: 'Pesan berhasil dikirim ke grup.', timer: 2000, showConfirmButton: false });
-                els.messageInput.value = ''; // Clear message ONLY on success
-
+                
+                const Toast = Swal.mixin({
+                    toast: true, position: 'top-center', showConfirmButton: false, timer: 2000,
+                    customClass: { popup: 'rounded-2xl text-sm font-medium' }
+                });
+                Toast.fire({ icon: 'success', title: 'Pesan Terkirim' });
+                
+                els.messageInput.value = '';
             } catch (err) {
-                Swal.fire({ icon: 'error', title: 'Gagal', text: 'Terjadi kesalahan saat mengirim pesan.' });
+                Swal.fire({ 
+                    icon: 'error', 
+                    title: 'Gagal', 
+                    text: 'Terjadi kesalahan sistem.',
+                    confirmButtonColor: '#000',
+                    customClass: { popup: 'rounded-3xl' } 
+                });
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = originalBtnText;
+                submitBtn.innerHTML = originalBtnContent;
             }
         });
 
-        // --- Initialization ---
         document.addEventListener('DOMContentLoaded', () => {
             fetchStatus();
             fetchGroups();
             fetchStorageInfo();
             fetchGDriveData();
-
-            // Polling status setiap 10 detik
             setInterval(fetchStatus, 10000);
         });
-
     </script>
 </body>
 </html>
