@@ -4,293 +4,334 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Kirim.Chat</title>
+    <title>Dashboard Integrated</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Inter (Font yang sama dengan referensi) -->
+    <!-- Google Fonts: Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- jsPDF & AutoTable (Untuk Export PDF) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'], // Font utama
-                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: {
-                        border: "hsl(var(--border))",
-                        input: "hsl(var(--input))",
-                        ring: "hsl(var(--ring))",
-                        background: "hsl(var(--background))",
-                        foreground: "hsl(var(--foreground))",
-                        primary: {
-                            DEFAULT: "hsl(var(--primary))",
-                            foreground: "hsl(var(--primary-foreground))",
-                        },
-                        muted: {
-                            DEFAULT: "hsl(var(--muted))",
-                            foreground: "hsl(var(--muted-foreground))",
-                        },
-                        accent: {
-                            DEFAULT: "hsl(var(--accent))",
-                            foreground: "hsl(var(--accent-foreground))",
-                        },
-                    },
-                    borderRadius: {
-                        lg: "var(--radius)",
-                        md: "calc(var(--radius) - 2px)",
-                        sm: "calc(var(--radius) - 4px)",
-                    },
+                        background: "#ffffff",
+                        foreground: "#09090b",
+                        muted: "#f4f4f5",
+                        border: "#e4e4e7",
+                        primary: "#18181b", // Zinc-900
+                    }
                 }
             }
         }
     </script>
 
     <style>
-        :root {
-            --background: 0 0% 100%;
-            --foreground: 240 10% 3.9%;
-            --card: 0 0% 100%;
-            --card-foreground: 240 10% 3.9%;
-            --popover: 0 0% 100%;
-            --popover-foreground: 240 10% 3.9%;
-            --primary: 240 5.9% 10%; /* Zinc-900 (Hitam) */
-            --primary-foreground: 0 0% 98%;
-            --muted: 240 4.8% 95.9%;
-            --muted-foreground: 240 3.8% 46.1%;
-            --accent: 240 4.8% 95.9%;
-            --accent-foreground: 240 5.9% 10%;
-            --border: 240 5.9% 90%;
-            --input: 240 5.9% 90%;
-            --ring: 240 5.9% 10%;
-            --radius: 1rem; /* 16px border radius (rounded-2xl/3xl) */
-        }
-
-        /* Dot Pattern Background */
-        .bg-dot-pattern {
-            background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
-            background-size: 24px 24px;
-        }
-
-        /* Glass Effect */
-        .glass {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-        }
-
-        .fade-in { animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
+        /* Base Aesthetic */
+        body { background-color: #ffffff; background-image: radial-gradient(#e5e7eb 1px, transparent 1px); background-size: 24px 24px; }
+        .glass { background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.6); }
+        .fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; transform: translateY(10px); }
+        @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+        
         /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #e4e4e7; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #a1a1aa; }
+
+        /* Tab Active State */
+        .tab-active { background-color: #18181b; color: white; shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .tab-inactive { background-color: transparent; color: #71717a; hover:bg-gray-100; }
     </style>
 </head>
 
-<body class="bg-background text-foreground font-sans min-h-screen flex flex-col antialiased bg-dot-pattern relative selection:bg-black selection:text-white">
-    
-    <!-- Background Gradient Glows (Aesthetic) -->
+<body class="text-foreground font-sans min-h-screen flex flex-col antialiased relative selection:bg-black selection:text-white">
+
+    <!-- Decorative Glows -->
     <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div class="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-blue-500/5 blur-[100px]"></div>
-        <div class="absolute top-[20%] -right-[10%] w-[40%] h-[40%] rounded-full bg-purple-500/5 blur-[100px]"></div>
+        <div class="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-blue-500/5 blur-[120px]"></div>
+        <div class="absolute top-[20%] -right-[10%] w-[30%] h-[30%] rounded-full bg-purple-500/5 blur-[120px]"></div>
     </div>
 
-    <!-- Header / Navbar (Pill Shape style) -->
-    <header class="fixed top-4 left-0 right-0 z-50 flex justify-center px-4">
-        <nav class="glass w-full max-w-5xl h-14 rounded-full flex items-center justify-between px-6 shadow-sm hover:shadow-md transition-all duration-300">
-            <!-- Logo -->
-            <div class="flex items-center gap-2">
-                <div class="w-8 h-8 rounded-full bg-black flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-black/20">K</div>
-                <span class="font-bold text-sm tracking-tight hidden sm:block">Kirim.Chat</span>
+    <!-- Header & Navigation -->
+    <header class="fixed top-6 left-0 right-0 z-50 flex flex-col items-center gap-4 px-4 pointer-events-none">
+        <!-- Main Navbar -->
+        <nav class="glass pointer-events-auto w-full max-w-4xl h-16 rounded-full flex items-center justify-between px-2 pl-6 shadow-xl shadow-slate-200/40">
+            <!-- Brand -->
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-full bg-black flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-black/20">
+                    <i class="material-icons text-[18px]">dashboard</i>
+                </div>
+                <div>
+                    <span class="font-bold text-sm tracking-tight block">Unified Dash</span>
+                    <span class="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Sistem Terintegrasi</span>
+                </div>
             </div>
 
-            <!-- Status Indicator -->
-            <div class="flex items-center gap-3">
-                <div id="connectionStatus" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 border border-border text-xs font-medium text-muted-foreground transition-all">
+            <!-- Tab Switcher (Desktop) -->
+            <div class="hidden md:flex bg-muted/50 p-1.5 rounded-full border border-border/50">
+                <button onclick="switchTab('wa')" id="btn-tab-wa" class="tab-active px-6 py-2 rounded-full text-xs font-semibold transition-all duration-300 flex items-center gap-2">
+                    <i class="fab fa-whatsapp"></i> WA & Drive
+                </button>
+                <button onclick="switchTab('sidang')" id="btn-tab-sidang" class="tab-inactive px-6 py-2 rounded-full text-xs font-semibold transition-all duration-300 flex items-center gap-2">
+                    <i class="fas fa-gavel"></i> Jadwal Sidang
+                </button>
+            </div>
+
+            <!-- Status & User -->
+            <div class="flex items-center gap-2 pr-2">
+                 <div id="connectionStatus" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/50 border border-border text-[10px] font-medium text-muted-foreground">
                     <span class="relative flex h-2 w-2">
                       <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-slate-400 opacity-75"></span>
                       <span class="relative inline-flex rounded-full h-2 w-2 bg-slate-500"></span>
                     </span>
-                    Connecting...
+                    Checking...
                 </div>
-                
-                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 border border-white shadow-sm flex items-center justify-center text-blue-700 font-bold text-xs">
-                    A
+                <div class="w-9 h-9 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 border border-white shadow-sm flex items-center justify-center text-slate-700 font-bold text-xs">
+                    MA
                 </div>
             </div>
         </nav>
+
+        <!-- Tab Switcher (Mobile) -->
+        <div class="md:hidden pointer-events-auto flex bg-white/80 backdrop-blur-md p-1 rounded-full border border-border shadow-lg">
+            <button onclick="switchTab('wa')" id="btn-tab-wa-mobile" class="tab-active px-4 py-2 rounded-full text-xs font-semibold transition-all flex items-center gap-2">
+                <i class="fab fa-whatsapp"></i> WA
+            </button>
+            <button onclick="switchTab('sidang')" id="btn-tab-sidang-mobile" class="tab-inactive px-4 py-2 rounded-full text-xs font-semibold transition-all flex items-center gap-2">
+                <i class="fas fa-gavel"></i> Sidang
+            </button>
+        </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="flex-1 relative z-10 pt-28 pb-12 px-4">
-        <div class="max-w-6xl mx-auto">
-            
-            <!-- Page Title -->
-            <div class="mb-10 text-center space-y-2 fade-in">
-                <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-foreground">Dashboard</h1>
-                <p class="text-muted-foreground text-sm md:text-base max-w-lg mx-auto">Kelola pesan WhatsApp dan file Google Drive Anda dalam satu tampilan terintegrasi.</p>
-            </div>
+    <!-- Main Content Area -->
+    <main class="flex-1 relative z-10 pt-32 pb-12 px-4 max-w-6xl mx-auto w-full">
 
-            <div class="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">
-                
-                <!-- Left Column: WA Sender -->
-                <div class="md:col-span-5 flex flex-col gap-6 fade-in" style="animation-delay: 100ms;">
-                    <!-- Card WA -->
-                    <div class="glass rounded-[2rem] p-1 border border-white/20 shadow-xl shadow-slate-200/40 bg-white/60">
-                        <div class="bg-white/80 rounded-[1.8rem] p-6 h-full border border-border/50">
+        <!-- ================= VIEW 1: WA & DRIVE ================= -->
+        <div id="view-wa" class="space-y-6 fade-in">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                <!-- Left Column: WA -->
+                <div class="md:col-span-5 flex flex-col gap-6">
+                    <div class="glass rounded-[2rem] p-1 border border-white/40 shadow-xl shadow-slate-200/50">
+                        <div class="bg-white/90 rounded-[1.8rem] p-6 h-full border border-border/50 backdrop-blur-xl">
                             <div class="flex items-center justify-between mb-6">
-                                <h3 class="font-semibold text-lg flex items-center gap-2">
-                                    <div class="p-2 bg-green-50 text-green-600 rounded-xl">
-                                        <i class="fab fa-whatsapp text-xl"></i>
-                                    </div>
+                                <h3 class="font-bold text-lg flex items-center gap-2">
+                                    <span class="w-8 h-8 rounded-xl bg-green-50 text-green-600 flex items-center justify-center"><i class="fab fa-whatsapp"></i></span>
                                     Kirim Pesan
                                 </h3>
-                                <button class="text-muted-foreground hover:text-foreground transition-colors">
-                                    <i class="fas fa-ellipsis-h"></i>
-                                </button>
                             </div>
-
-                            <form id="kirimPesanForm" class="space-y-5">
-                                <div class="space-y-2">
-                                    <label for="penerima" class="text-xs font-medium uppercase tracking-wider text-muted-foreground ml-1">Penerima</label>
+                            <form id="kirimPesanForm" class="space-y-4">
+                                <div class="space-y-1.5">
+                                    <label class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Penerima</label>
                                     <div class="relative group">
-                                        <select id="penerima" required class="w-full pl-4 pr-10 py-3 bg-muted/30 hover:bg-muted/50 border border-border rounded-2xl text-sm focus:ring-2 focus:ring-black/5 focus:border-black focus:bg-white transition-all appearance-none cursor-pointer outline-none">
+                                        <select id="penerima" required class="w-full pl-4 pr-10 py-3 bg-muted/30 border border-border rounded-xl text-sm focus:ring-2 focus:ring-black/5 focus:bg-white transition-all appearance-none outline-none">
                                             <option value="">Memuat data...</option>
                                         </select>
-                                        <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-muted-foreground group-hover:text-foreground transition-colors">
-                                            <i class="fas fa-chevron-down text-xs"></i>
-                                        </div>
+                                        <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-muted-foreground"><i class="fas fa-chevron-down text-xs"></i></div>
                                     </div>
                                 </div>
-                                
-                                <div class="space-y-2">
-                                    <label for="message" class="text-xs font-medium uppercase tracking-wider text-muted-foreground ml-1">Pesan</label>
-                                    <textarea id="message" rows="6" class="w-full p-4 bg-muted/30 hover:bg-muted/50 border border-border rounded-2xl text-sm focus:ring-2 focus:ring-black/5 focus:border-black focus:bg-white transition-all resize-none outline-none placeholder:text-muted-foreground/50" placeholder="Ketik pesan Anda disini..."></textarea>
+                                <div class="space-y-1.5">
+                                    <label class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Pesan</label>
+                                    <textarea id="message" rows="5" class="w-full p-4 bg-muted/30 border border-border rounded-xl text-sm focus:ring-2 focus:ring-black/5 focus:bg-white transition-all resize-none outline-none" placeholder="Ketik pesan..."></textarea>
                                 </div>
-
-                                <button type="submit" class="group relative w-full h-12 bg-primary text-primary-foreground font-medium rounded-2xl shadow-lg shadow-black/5 hover:shadow-black/10 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 overflow-hidden">
-                                    <span class="relative z-10 flex items-center justify-center gap-2">
-                                        Kirim Sekarang <i class="fas fa-paper-plane text-xs group-hover:translate-x-1 transition-transform"></i>
-                                    </span>
+                                <button type="submit" class="w-full h-11 bg-primary text-white font-medium rounded-xl shadow-lg shadow-black/5 hover:shadow-black/10 hover:-translate-y-0.5 active:translate-y-0 transition-all">
+                                    Kirim Sekarang
                                 </button>
                             </form>
                         </div>
                     </div>
-
-                    <!-- Mini Stats (Optional Decorative) -->
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="bg-white rounded-3xl p-5 border border-border shadow-sm flex flex-col items-center justify-center text-center gap-1">
-                            <span class="text-3xl font-bold tracking-tighter">24</span>
-                            <span class="text-xs text-muted-foreground font-medium">Pesan Terkirim</span>
-                        </div>
-                        <div class="bg-white rounded-3xl p-5 border border-border shadow-sm flex flex-col items-center justify-center text-center gap-1">
-                            <span class="text-3xl font-bold tracking-tighter text-green-600">Active</span>
-                            <span class="text-xs text-muted-foreground font-medium">Status Server</span>
-                        </div>
-                    </div>
                 </div>
 
-                <!-- Right Column: Drive & Files -->
-                <div class="md:col-span-7 flex flex-col gap-6 fade-in" style="animation-delay: 200ms;">
-                    
-                    <!-- Storage Card -->
-                    <div class="glass rounded-[2rem] p-6 border border-white/20 shadow-sm bg-white/40 backdrop-blur-md relative overflow-hidden">
-                         <!-- Decorative BG -->
-                         <div class="absolute -right-10 -top-10 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl"></div>
-
+                <!-- Right Column: Drive -->
+                <div class="md:col-span-7 flex flex-col gap-6">
+                    <!-- Storage Info -->
+                    <div class="glass rounded-[2rem] p-6 border border-white/40 shadow-sm relative overflow-hidden">
+                        <div class="absolute right-0 top-0 w-32 h-32 bg-gradient-to-br from-blue-500/10 to-transparent blur-2xl rounded-bl-full"></div>
                         <div class="flex items-center justify-between mb-4 relative z-10">
-                            <h3 class="font-semibold text-lg flex items-center gap-2">
-                                <div class="p-2 bg-blue-50 text-blue-600 rounded-xl">
-                                    <i class="fab fa-google-drive text-xl"></i>
-                                </div>
+                            <h3 class="font-bold text-lg flex items-center gap-2">
+                                <span class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center"><i class="fab fa-google-drive"></i></span>
                                 Penyimpanan
                             </h3>
-                            <div id="storageBadge" class="hidden px-3 py-1 bg-white rounded-full border border-border text-xs font-medium shadow-sm">Loading...</div>
+                            <div id="storageBadge" class="hidden px-2.5 py-1 bg-white rounded-full border border-border text-[10px] font-bold shadow-sm">...</div>
                         </div>
-
                         <div class="relative z-10">
                             <div class="flex justify-between text-xs font-medium text-muted-foreground mb-2">
-                                <span id="storageText">Memuat kapasitas...</span>
+                                <span id="storageText">Memuat...</span>
                             </div>
-                            <div class="w-full bg-white/50 border border-white/60 rounded-full h-3 p-0.5">
-                                <div id="storageProgress" class="bg-gradient-to-r from-blue-500 to-indigo-500 h-full rounded-full transition-all duration-1000 ease-out shadow-sm" style="width: 0%"></div>
+                            <div class="w-full bg-white/50 border border-white/60 rounded-full h-2.5 p-0.5">
+                                <div id="storageProgress" class="bg-gradient-to-r from-blue-500 to-indigo-600 h-full rounded-full transition-all duration-1000 shadow-sm" style="width: 0%"></div>
                             </div>
                         </div>
                     </div>
 
                     <!-- File List -->
                     <div class="bg-white rounded-[2rem] border border-border shadow-sm flex-1 flex flex-col overflow-hidden min-h-[400px]">
-                        <div class="p-6 border-b border-border/50 bg-muted/20 flex items-center justify-between">
-                            <h3 class="font-semibold text-foreground">File Terbaru</h3>
-                            <button onclick="fetchGDriveData()" class="text-xs font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-1">
-                                <i class="fas fa-sync-alt"></i> Refresh
-                            </button>
+                        <div class="p-5 border-b border-border/50 bg-muted/20 flex items-center justify-between">
+                            <h3 class="font-semibold text-sm">File Terbaru</h3>
+                            <button onclick="fetchGDriveData()" class="text-xs font-medium text-muted-foreground hover:text-primary flex items-center gap-1"><i class="fas fa-sync-alt"></i> Refresh</button>
                         </div>
-                        
-                        <div id="gdriveData" class="p-4 space-y-3 overflow-y-auto flex-1">
-                            <!-- Loader -->
-                            <div class="flex flex-col items-center justify-center h-40 gap-3 text-muted-foreground">
-                                <div class="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent"></div>
-                                <span class="text-xs font-medium">Memuat data drive...</span>
+                        <div id="gdriveData" class="p-4 space-y-3 overflow-y-auto flex-1 custom-scrollbar">
+                            <div class="flex flex-col items-center justify-center h-40 text-muted-foreground gap-2">
+                                <div class="animate-spin rounded-full h-5 w-5 border-2 border-primary border-t-transparent"></div>
+                                <span class="text-xs">Memuat file...</span>
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>
+
+        <!-- ================= VIEW 2: JADWAL SIDANG ================= -->
+        <div id="view-sidang" class="hidden space-y-6 fade-in">
+            <!-- Filter Bar -->
+            <div class="glass rounded-[2rem] p-1 border border-white/40 shadow-lg">
+                <div class="bg-white/80 rounded-[1.8rem] p-4 md:p-6 border border-border/50 flex flex-col md:flex-row gap-4 items-end md:items-center justify-between">
+                    <div class="flex flex-col md:flex-row gap-4 w-full">
+                        <div class="space-y-1.5 flex-1">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Tanggal Sidang</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="far fa-calendar text-muted-foreground"></i></div>
+                                <input type="date" id="tanggalSidang" class="w-full pl-10 pr-4 py-2.5 bg-muted/30 border border-border rounded-xl text-sm focus:ring-2 focus:ring-black/5 focus:bg-white transition-all outline-none">
+                            </div>
+                        </div>
+                        <div class="space-y-1.5 flex-1">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Kategori</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="fas fa-filter text-muted-foreground text-xs"></i></div>
+                                <select id="sidangKategori" class="w-full pl-10 pr-8 py-2.5 bg-muted/30 border border-border rounded-xl text-sm focus:ring-2 focus:ring-black/5 focus:bg-white transition-all appearance-none outline-none">
+                                    <option value="pidana">Pidana</option>
+                                    <option value="perdata">Perdata</option>
+                                </select>
+                                <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none"><i class="fas fa-chevron-down text-xs text-muted-foreground"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 w-full md:w-auto">
+                        <button onclick="fetchJadwalSidang()" class="flex-1 md:flex-none h-10 px-6 bg-primary text-white text-sm font-medium rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all">
+                            Tampilkan
+                        </button>
+                        <button onclick="exportPDF()" id="btnExportPDF" disabled class="flex-1 md:flex-none h-10 px-4 bg-white border border-border text-muted-foreground hover:text-red-600 hover:border-red-200 text-sm font-medium rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                            <i class="far fa-file-pdf"></i> PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Container -->
+            <div id="sidangContent" class="space-y-6">
+                <!-- Welcome State -->
+                <div id="sidang-welcome" class="text-center py-20 glass rounded-[2rem] border border-white/40">
+                    <div class="w-16 h-16 bg-muted/50 rounded-full flex items-center justify-center mx-auto mb-4 text-muted-foreground">
+                        <i class="material-icons text-4xl">search</i>
+                    </div>
+                    <h3 class="text-lg font-bold">Cari Jadwal Sidang</h3>
+                    <p class="text-sm text-muted-foreground">Pilih tanggal dan kategori untuk melihat data.</p>
+                </div>
+
+                <!-- Loader -->
+                <div id="sidang-loader" class="hidden text-center py-20">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                    <p class="text-sm font-medium">Sedang mengambil data...</p>
+                </div>
+
+                <!-- Table Container -->
+                <div id="sidang-results" class="hidden bg-white rounded-[2rem] border border-border shadow-sm overflow-hidden">
+                     <div class="p-5 border-b border-border/50 bg-muted/20 flex items-center justify-between">
+                        <h3 class="font-bold text-sm flex items-center gap-2">
+                            <span id="label-kategori" class="px-2 py-0.5 rounded text-[10px] uppercase tracking-wider bg-primary text-white">PIDANA</span>
+                            <span id="label-count" class="text-muted-foreground font-normal text-xs">0 Perkara</span>
+                        </h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left" id="tabel-sidang">
+                            <thead class="bg-muted/30 text-xs text-muted-foreground uppercase border-b border-border">
+                                <tr>
+                                    <th class="px-6 py-4 font-semibold w-12 text-center">No</th>
+                                    <th class="px-6 py-4 font-semibold">No. Perkara</th>
+                                    <th class="px-6 py-4 font-semibold">Ruang</th>
+                                    <th class="px-6 py-4 font-semibold">Agenda</th>
+                                    <th class="px-6 py-4 font-semibold">Pihak</th>
+                                    <th class="px-6 py-4 font-semibold">Hakim & Panitera</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-sidang" class="divide-y divide-border/50">
+                                <!-- Data injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </main>
 
     <!-- Footer -->
-    <footer class="py-8 text-center text-sm text-muted-foreground">
-        <p>© 2024 Kirim.Chat. All rights reserved.</p>
+    <footer class="py-6 text-center text-[10px] text-muted-foreground uppercase tracking-widest opacity-50">
+        © 2024 Dashboard Integrated
     </footer>
 
-    <!-- Scripts Logic -->
+    <!-- LOGIC SCRIPTS -->
     <script>
-        // --- App Configuration ---
+        // --- GLOBAL STATE ---
         const userId = "patrolwaa1";
         const API_WA = "https://wa-api.pnblk.my.id";
         const API_DRIVE = "https://gdrivetoday.vercel.app/gdrive";
+        const API_SIDANG = "https://api.pnblk.my.id/api.php";
+        
+        let currentSidangData = [];
+        let currentKategori = 'pidana';
 
-        const els = {
-            connectionStatus: document.getElementById('connectionStatus'),
-            storageText: document.getElementById('storageText'),
-            storageBadge: document.getElementById('storageBadge'),
-            storageProgress: document.getElementById('storageProgress'),
-            penerimaSelect: document.getElementById('penerima'),
-            gdriveContainer: document.getElementById('gdriveData'),
-            messageForm: document.getElementById('kirimPesanForm'),
-            messageInput: document.getElementById('message')
-        };
+        // --- NAVIGATION LOGIC ---
+        function switchTab(tab) {
+            const viewWa = document.getElementById('view-wa');
+            const viewSidang = document.getElementById('view-sidang');
+            const btns = {
+                wa: { desk: document.getElementById('btn-tab-wa'), mob: document.getElementById('btn-tab-wa-mobile') },
+                sidang: { desk: document.getElementById('btn-tab-sidang'), mob: document.getElementById('btn-tab-sidang-mobile') }
+            };
 
-        // --- UI Updates ---
-        const updateStatusBadge = (status) => {
-            const isConnected = status === 'connected';
-            const colorClass = isConnected ? 'text-green-600 bg-green-50/50 border-green-200' : 'text-red-600 bg-red-50/50 border-red-200';
-            const dotColor = isConnected ? 'bg-green-500' : 'bg-red-500';
-            const pingColor = isConnected ? 'bg-green-400' : 'bg-red-400';
-            
-            els.connectionStatus.className = `flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-medium transition-all ${colorClass}`;
-            els.connectionStatus.innerHTML = `
-                <span class="relative flex h-2 w-2">
-                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full ${pingColor} opacity-75"></span>
-                  <span class="relative inline-flex rounded-full h-2 w-2 ${dotColor}"></span>
-                </span>
-                ${isConnected ? 'Connected' : 'Disconnected'}
-            `;
-        };
+            // Reset Classes
+            [btns.wa.desk, btns.sidang.desk, btns.wa.mob, btns.sidang.mob].forEach(b => {
+                b.className = b.className.replace('tab-active', 'tab-inactive').replace('bg-[#18181b]', 'bg-transparent').replace('text-white', 'text-[#71717a]');
+                if (b.className.indexOf('tab-inactive') === -1) b.classList.add('tab-inactive');
+            });
 
-        // --- API Functions ---
+            // Set Active Classes
+            const activeBtns = [btns[tab].desk, btns[tab].mob];
+            activeBtns.forEach(b => {
+                b.className = b.className.replace('tab-inactive', 'tab-active').replace('text-[#71717a]', 'text-white').replace('bg-transparent', 'bg-[#18181b]');
+            });
+
+            // Toggle Views with Animation reset
+            if (tab === 'wa') {
+                viewSidang.classList.add('hidden');
+                viewWa.classList.remove('hidden');
+                viewWa.style.animation = 'none';
+                viewWa.offsetHeight; /* trigger reflow */
+                viewWa.style.animation = null; 
+            } else {
+                viewWa.classList.add('hidden');
+                viewSidang.classList.remove('hidden');
+                viewSidang.style.animation = 'none';
+                viewSidang.offsetHeight; /* trigger reflow */
+                viewSidang.style.animation = null;
+                // Auto set today date if empty
+                if(!document.getElementById('tanggalSidang').value) {
+                    document.getElementById('tanggalSidang').valueAsDate = new Date();
+                }
+            }
+        }
+
+        // --- WA & DRIVE LOGIC ---
         async function fetchStorageInfo() {
             try {
                 const res = await fetch(`${API_DRIVE}/info`);
@@ -299,15 +340,14 @@
                 const used = parseFloat(data.usedStorageGB);
                 const percent = ((used / total) * 100).toFixed(1);
 
-                els.storageText.textContent = `${used} GB used of ${total} GB`;
-                els.storageBadge.textContent = `${percent}%`;
-                els.storageBadge.classList.remove('hidden');
-                els.storageProgress.style.width = `${percent}%`;
+                document.getElementById('storageText').textContent = `${used} GB used of ${total} GB`;
+                document.getElementById('storageBadge').textContent = `${percent}%`;
+                document.getElementById('storageBadge').classList.remove('hidden');
+                document.getElementById('storageProgress').style.width = `${percent}%`;
                 
-                if(percent > 90) els.storageProgress.classList.replace('from-blue-500', 'from-red-500');
+                if(percent > 90) document.getElementById('storageProgress').classList.replace('from-blue-500', 'from-red-500');
             } catch (err) {
-                console.error("Storage Error:", err);
-                els.storageText.textContent = "Unavailable";
+                document.getElementById('storageText').textContent = "Info tidak tersedia";
             }
         }
 
@@ -315,167 +355,205 @@
             try {
                 const res = await fetch(`${API_WA}/groups/${userId}`);
                 const groups = await res.json();
-                
-                els.penerimaSelect.innerHTML = '<option value="">-- Pilih Grup Tujuan --</option>';
+                const select = document.getElementById('penerima');
+                select.innerHTML = '<option value="">-- Pilih Grup Tujuan --</option>';
                 groups.forEach(g => {
                     const opt = document.createElement('option');
                     opt.value = g.id;
                     opt.textContent = g.name;
-                    els.penerimaSelect.appendChild(opt);
+                    select.appendChild(opt);
                 });
-            } catch (err) {
-                console.error("Group Error:", err);
-                els.penerimaSelect.innerHTML = '<option value="">Gagal memuat grup</option>';
-            }
+            } catch (err) { console.error(err); }
         }
 
         async function fetchStatus() {
             try {
                 const res = await fetch(`${API_WA}/status/${userId}`);
                 const data = await res.json();
-                updateStatusBadge(data.status);
-            } catch (err) {
-                updateStatusBadge('error');
-            }
+                const isConnected = data.status === 'connected';
+                const el = document.getElementById('connectionStatus');
+                el.innerHTML = `
+                    <span class="relative flex h-2 w-2">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full ${isConnected?'bg-green-400':'bg-red-400'} opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2 w-2 ${isConnected?'bg-green-500':'bg-red-500'}"></span>
+                    </span>
+                    ${isConnected ? 'Online' : 'Offline'}
+                `;
+                el.className = `hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full border text-[10px] font-medium ${isConnected?'bg-green-50/50 border-green-200 text-green-700':'bg-red-50/50 border-red-200 text-red-700'}`;
+            } catch (err) {}
         }
 
         async function fetchGDriveData() {
+            const container = document.getElementById('gdriveData');
             try {
                 const res = await fetch(API_DRIVE);
                 const items = await res.json();
-                
-                els.gdriveContainer.innerHTML = '';
+                container.innerHTML = '';
                 
                 if(items.length === 0) {
-                    els.gdriveContainer.innerHTML = `
-                        <div class="flex flex-col items-center justify-center h-48 text-muted-foreground/50">
-                            <div class="bg-muted/30 p-4 rounded-full mb-3">
-                                <i class="far fa-folder-open text-3xl"></i>
-                            </div>
-                            <p class="text-sm">Folder kosong hari ini.</p>
-                        </div>`;
+                    container.innerHTML = `<div class="flex flex-col items-center justify-center h-40 text-muted-foreground/50"><i class="far fa-folder-open text-3xl mb-2"></i><span class="text-xs">Folder kosong</span></div>`;
                     return;
                 }
 
                 items.forEach((item, index) => {
                     const link = `https://drive.google.com/drive/folders/${item.id}`;
-                    
-                    // Card Style for Files
-                    const card = document.createElement('div');
-                    card.className = 'group relative bg-white border border-border/60 hover:border-black/20 rounded-2xl p-4 transition-all duration-300 hover:shadow-md hover:shadow-slate-200/50 fade-in';
-                    card.style.animationDelay = `${index * 50}ms`;
-                    
-                    card.innerHTML = `
-                        <div class="flex items-start justify-between gap-3">
+                    const html = `
+                        <div class="group relative bg-white border border-border/60 hover:border-black/20 rounded-xl p-3 hover:shadow-sm transition-all flex items-center justify-between gap-3 animate-[fadeIn_0.5s_ease-out_forwards]" style="animation-delay: ${index*50}ms; opacity: 0">
                             <div class="flex items-center gap-3 overflow-hidden">
-                                <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
-                                    <i class="fas fa-folder"></i>
-                                </div>
+                                <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0"><i class="fas fa-folder text-sm"></i></div>
                                 <div class="min-w-0">
-                                    <h4 class="text-sm font-semibold text-foreground truncate group-hover:text-blue-600 transition-colors">${item.name}</h4>
-                                    <p class="text-[10px] text-muted-foreground uppercase tracking-wide font-medium mt-0.5">Google Drive</p>
+                                    <h4 class="text-xs font-semibold text-foreground truncate">${item.name}</h4>
+                                    <p class="text-[10px] text-muted-foreground">Google Drive</p>
                                 </div>
                             </div>
-                            <a href="${link}" target="_blank" class="w-8 h-8 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:bg-black hover:text-white hover:border-black transition-all">
-                                <i class="fas fa-arrow-up-right-from-square text-xs"></i>
-                            </a>
-                        </div>
-                        
-                        <div class="mt-4 pt-4 border-t border-border/50 flex gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
-                            <button onclick="handleAction('send', '${item.name}', '${link}')" 
-                                class="flex-1 h-9 flex items-center justify-center gap-2 bg-muted/50 hover:bg-green-50 text-muted-foreground hover:text-green-700 text-xs font-semibold rounded-lg transition-colors">
-                                <i class="fab fa-whatsapp"></i> Kirim
-                            </button>
-                            <button onclick="handleAction('copy', '${item.name}', '${link}')" 
-                                class="flex-1 h-9 flex items-center justify-center gap-2 bg-muted/50 hover:bg-blue-50 text-muted-foreground hover:text-blue-700 text-xs font-semibold rounded-lg transition-colors">
-                                <i class="far fa-copy"></i> Salin
-                            </button>
-                        </div>
-                    `;
-                    els.gdriveContainer.appendChild(card);
+                            <div class="flex gap-1">
+                                <button onclick="handleAction('send', '${item.name}', '${link}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-muted/50 hover:bg-green-50 text-muted-foreground hover:text-green-600 transition-colors"><i class="fab fa-whatsapp text-xs"></i></button>
+                                <button onclick="handleAction('copy', '${item.name}', '${link}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-muted/50 hover:bg-blue-50 text-muted-foreground hover:text-blue-600 transition-colors"><i class="far fa-copy text-xs"></i></button>
+                            </div>
+                        </div>`;
+                    container.insertAdjacentHTML('beforeend', html);
                 });
-
-            } catch (err) {
-                console.error("Drive Data Error:", err);
-                els.gdriveContainer.innerHTML = `<div class="p-4 text-center text-red-400 text-xs bg-red-50 rounded-xl border border-red-100">Gagal memuat data. <button onclick="fetchGDriveData()" class="underline font-bold ml-1">Coba lagi</button></div>`;
-            }
+            } catch (err) { container.innerHTML = `<div class="text-center text-xs text-red-400">Gagal memuat.</div>`; }
         }
 
         window.handleAction = (action, name, link) => {
             const text = `*${name}*\n${link}`;
             if (action === 'copy') {
-                navigator.clipboard.writeText(text).then(() => {
-                    const Toast = Swal.mixin({
-                        toast: true, position: 'top-center', showConfirmButton: false, timer: 1500,
-                        customClass: { popup: 'rounded-2xl text-sm font-medium' }
-                    });
-                    Toast.fire({ icon: 'success', title: 'Link berhasil disalin' });
-                });
+                navigator.clipboard.writeText(text).then(() => Swal.fire({ toast: true, position: 'top', showConfirmButton: false, timer: 1500, icon: 'success', title: 'Disalin' }));
             } else if (action === 'send') {
-                els.messageInput.value = text;
-                els.messageInput.focus();
-                // Scroll to top mobile
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                document.getElementById('message').value = text;
+                document.getElementById('message').focus();
             }
         };
 
-        els.messageForm.addEventListener('submit', async (e) => {
+        document.getElementById('kirimPesanForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const to = els.penerimaSelect.value;
-            const message = els.messageInput.value;
-            const submitBtn = els.messageForm.querySelector('button[type="submit"]');
-            const originalBtnContent = submitBtn.innerHTML;
+            const btn = e.target.querySelector('button');
+            const originalText = btn.innerHTML;
+            const to = document.getElementById('penerima').value;
+            const msg = document.getElementById('message').value;
 
-            if (!to || !message.trim()) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Data Belum Lengkap',
-                    text: 'Silakan pilih grup dan isi pesan terlebih dahulu.',
-                    confirmButtonColor: '#000',
-                    customClass: { popup: 'rounded-3xl', confirmButton: 'rounded-xl px-6' }
-                });
-                return;
-            }
+            if(!to || !msg) return Swal.fire({icon:'warning', title:'Lengkapi Data', text:'Pilih grup dan isi pesan.'});
 
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Mengirim...';
-
+            btn.disabled = true; btn.innerHTML = 'Mengirim...';
             try {
-                const res = await fetch(`${API_WA}/send-text`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ userId, to, message, typing: true })
-                });
-                const result = await res.json();
-                
-                const Toast = Swal.mixin({
-                    toast: true, position: 'top-center', showConfirmButton: false, timer: 2000,
-                    customClass: { popup: 'rounded-2xl text-sm font-medium' }
-                });
-                Toast.fire({ icon: 'success', title: 'Pesan Terkirim' });
-                
-                els.messageInput.value = '';
-            } catch (err) {
-                Swal.fire({ 
-                    icon: 'error', 
-                    title: 'Gagal', 
-                    text: 'Terjadi kesalahan sistem.',
-                    confirmButtonColor: '#000',
-                    customClass: { popup: 'rounded-3xl' } 
-                });
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalBtnContent;
-            }
+                await fetch(`${API_WA}/send-text`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userId, to, message: msg, typing: true }) });
+                Swal.fire({icon:'success', title:'Terkirim', toast:true, position:'top-end', showConfirmButton:false, timer:2000});
+                document.getElementById('message').value = '';
+            } catch (err) { Swal.fire({icon:'error', title:'Gagal'}); }
+            finally { btn.disabled = false; btn.innerHTML = originalText; }
         });
 
+
+        // --- JADWAL SIDANG LOGIC ---
+        async function fetchJadwalSidang() {
+            const date = document.getElementById('tanggalSidang').value;
+            const category = document.getElementById('sidangKategori').value;
+            const loader = document.getElementById('sidang-loader');
+            const welcome = document.getElementById('sidang-welcome');
+            const results = document.getElementById('sidang-results');
+            const tbody = document.getElementById('tbody-sidang');
+            const btnPdf = document.getElementById('btnExportPDF');
+
+            if (!date) return Swal.fire({icon:'warning', text:'Pilih tanggal terlebih dahulu.'});
+
+            welcome.classList.add('hidden');
+            results.classList.add('hidden');
+            loader.classList.remove('hidden');
+            btnPdf.disabled = true;
+            currentKategori = category;
+
+            try {
+                const res = await fetch(`${API_SIDANG}?tanggalSidang=${date}`);
+                const data = await res.json();
+                const list = data[category] || [];
+                currentSidangData = list;
+
+                document.getElementById('label-kategori').textContent = category;
+                document.getElementById('label-kategori').className = `px-2 py-0.5 rounded text-[10px] uppercase tracking-wider text-white ${category==='pidana'?'bg-red-500':'bg-green-500'}`;
+                document.getElementById('label-count').textContent = `${list.length} Perkara`;
+
+                tbody.innerHTML = '';
+                if(list.length === 0) {
+                     tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-12 text-center text-muted-foreground text-sm">Tidak ada jadwal ${category} pada tanggal ini.</td></tr>`;
+                } else {
+                    list.forEach((item, idx) => {
+                        const pihak = category === 'pidana' 
+                            ? `<div class='font-medium text-slate-800'>${item.pihak1}</div><div class='text-xs text-muted-foreground'>vs ${item.pihak2||'-'}</div>`
+                            : `<div class='font-medium text-slate-800'>${item.pihak1}</div><div class='text-xs text-muted-foreground'>Lawan: ${item.pihak2||'-'}</div>`;
+                        
+                        const hakim = `<div class='font-medium text-slate-700 whitespace-pre-line leading-tight'>${item.namaHakim}</div><div class='text-[10px] text-muted-foreground mt-1'>PP: ${item.namaPanitera}</div>`;
+
+                        const row = `
+                            <tr class="hover:bg-muted/30 transition-colors group">
+                                <td class="px-6 py-4 text-center text-muted-foreground">${idx+1}</td>
+                                <td class="px-6 py-4 font-medium text-foreground">${item.noPerkara}</td>
+                                <td class="px-6 py-4"><span class="px-2 py-1 bg-slate-100 rounded text-xs font-semibold text-slate-600 border border-slate-200">${item.ruangSidang}</span></td>
+                                <td class="px-6 py-4 text-slate-600 max-w-xs leading-relaxed">${item.agendaSidang}</td>
+                                <td class="px-6 py-4">${pihak}</td>
+                                <td class="px-6 py-4 text-xs">${hakim}</td>
+                            </tr>
+                        `;
+                        tbody.insertAdjacentHTML('beforeend', row);
+                    });
+                    btnPdf.disabled = false;
+                }
+
+                loader.classList.add('hidden');
+                results.classList.remove('hidden');
+
+            } catch (err) {
+                loader.classList.add('hidden');
+                Swal.fire({icon:'error', title:'Error', text:'Gagal mengambil data sidang.'});
+            }
+        }
+
+        function exportPDF() {
+            if(currentSidangData.length === 0) return;
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('landscape', 'pt', 'legal');
+            const dateStr = document.getElementById('tanggalSidang').value;
+            const title = `JADWAL SIDANG ${currentKategori.toUpperCase()}`;
+            const color = currentKategori === 'pidana' ? [220, 38, 38] : [22, 163, 74];
+
+            doc.setFontSize(16);
+            doc.text(title, 40, 45);
+            doc.setFontSize(10);
+            doc.text(`Tanggal: ${dateStr}`, 40, 60);
+
+            doc.autoTable({
+                html: '#tabel-sidang',
+                startY: 75,
+                theme: 'grid',
+                headStyles: { fillColor: color, textColor: 255, fontSize: 10 },
+                styles: { fontSize: 8, cellPadding: 6, valign: 'middle' },
+                columnStyles: { 0: {cellWidth: 30}, 3: {cellWidth: 'auto'} },
+                didParseCell: function(data) {
+                    // Cleanup HTML content for PDF text
+                    if(data.section === 'body' && typeof data.cell.raw === 'object') {
+                       let text = data.cell.raw.innerText || data.cell.raw.textContent;
+                       // Clean extra whitespace/newlines
+                       text = text.replace(/vs /g, '\nvs ').replace(/Lawan: /g, '\nLawan: ').replace(/PP: /g, '\nPP: ');
+                       data.cell.text = text;
+                    }
+                }
+            });
+
+            doc.save(`${title}_${dateStr}.pdf`);
+        }
+
+        // --- INIT ---
         document.addEventListener('DOMContentLoaded', () => {
             fetchStatus();
             fetchGroups();
             fetchStorageInfo();
             fetchGDriveData();
             setInterval(fetchStatus, 10000);
+            
+            // Set default view to WA
+            switchTab('wa');
         });
+
     </script>
 </body>
 </html>
