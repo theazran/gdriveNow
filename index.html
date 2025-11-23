@@ -512,35 +512,103 @@
             if(currentSidangData.length === 0) return;
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('landscape', 'pt', 'legal');
-            const dateStr = document.getElementById('tanggalSidang').value;
+            
+            // Format Date
+            const dateInput = document.getElementById('tanggalSidang').value;
+            const dateObj = new Date(dateInput);
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const formattedDate = dateObj.toLocaleDateString('id-ID', options);
+
             const title = `JADWAL SIDANG ${currentKategori.toUpperCase()}`;
-            const color = currentKategori === 'pidana' ? [220, 38, 38] : [22, 163, 74];
+            const headerColor = currentKategori === 'pidana' ? [220, 38, 38] : [22, 163, 74];
 
-            doc.setFontSize(16);
-            doc.text(title, 40, 45);
-            doc.setFontSize(10);
-            doc.text(`Tanggal: ${dateStr}`, 40, 60);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(18);
+            doc.text(title, 40, 40);
+            
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(11);
+            doc.text(`Tanggal: ${formattedDate}`, 40, 60);
 
-            doc.autoTable({
-                html: '#tabel-sidang',
-                startY: 75,
-                theme: 'grid',
-                headStyles: { fillColor: color, textColor: 255, fontSize: 10 },
-                styles: { fontSize: 8, cellPadding: 6, valign: 'middle' },
-                columnStyles: { 0: {cellWidth: 30}, 3: {cellWidth: 'auto'} },
-                didParseCell: function(data) {
-                    // Cleanup HTML content for PDF text
-                    if(data.section === 'body' && typeof data.cell.raw === 'object') {
-                       let text = data.cell.raw.innerText || data.cell.raw.textContent;
-                       // Clean extra whitespace/newlines
-                       text = text.replace(/vs /g, '\nvs ').replace(/Lawan: /g, '\nLawan: ').replace(/PP: /g, '\nPP: ');
-                       data.cell.text = text;
-                    }
+            // Helper to clean HTML tags for PDF
+            const cleanHTML = (str) => {
+                if (!str) return '-';
+                return str
+                    .replace(/<br\s*\/?>/gi, '\n') // Replace <br> with newline
+                    .replace(/&nbsp;/g, ' ')       // Replace &nbsp;
+                    .replace(/<\/?[^>]+(>|$)/g, "") // Strip other tags
+                    .trim(); 
+            };
+
+            // Map data for clean PDF output
+            const bodyData = currentSidangData.map((item, index) => {
+                const p1 = cleanHTML(item.pihak1);
+                const p2 = cleanHTML(item.pihak2);
+                const hakim = cleanHTML(item.namaHakim);
+                const panitera = cleanHTML(item.namaPanitera);
+
+                let pihakStr = "";
+                if (currentKategori === 'pidana') {
+                    pihakStr = `PU:\n${p1}\n\nTerdakwa:\n${p2}`;
+                } else {
+                    pihakStr = `Penggugat:\n${p1}\n\nTergugat:\n${p2}`;
                 }
+                const hakimStr = `Majelis:\n${hakim}\n\nPP: ${panitera}`;
+                
+                return [
+                    index + 1,
+                    item.noPerkara,
+                    item.ruangSidang,
+                    item.agendaSidang,
+                    pihakStr,
+                    hakimStr
+                ];
             });
 
-            doc.save(`${title}_${dateStr}.pdf`);
+            doc.autoTable({
+                head: [['No', 'No. Perkara', 'Ruang', 'Agenda', 'Para Pihak', 'Majelis Hakim & PP']],
+                body: bodyData,
+                startY: 80,
+                theme: 'grid',
+                headStyles: { 
+                    fillColor: headerColor, 
+                    textColor: 255, 
+                    fontSize: 11,
+                    fontStyle: 'bold', 
+                    halign: 'center',
+                    valign: 'middle' 
+                },
+                styles: { 
+                    fontSize: 9, 
+                    cellPadding: 6, 
+                    valign: 'top',
+                    overflow: 'linebreak',
+                    lineColor: [200, 200, 200]
+                },
+                columnStyles: {
+                    0: { cellWidth: 30, halign: 'center' },
+                    1: { cellWidth: 100, fontStyle: 'bold' },
+                    2: { cellWidth: 60, halign: 'center' },
+                    3: { cellWidth: 'auto' }, // Agenda flexible
+                    4: { cellWidth: 160 },
+                    5: { cellWidth: 160 }
+                },
+                alternateRowStyles: { fillColor: [249, 250, 251] },
+                margin: { top: 80 }
+            });
+
+            // Page Numbers Footer
+            const pageCount = doc.internal.getNumberOfPages();
+            for(let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                doc.setFontSize(8);
+                doc.text('Dicetak dari Sistem Informasi Jadwal Sidang', 40, doc.internal.pageSize.height - 20);
+                doc.text('Halaman ' + i + ' dari ' + pageCount, doc.internal.pageSize.width - 40, doc.internal.pageSize.height - 20, { align: 'right' });
+            }
+
+            doc.save(`${title.replace(/ /g, '_')}_${dateInput}.pdf`);
         }
+
 
         // --- INIT ---
         document.addEventListener('DOMContentLoaded', () => {
