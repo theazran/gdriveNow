@@ -219,17 +219,17 @@
                         <button onclick="exportPDF()" id="btnExportPDF" disabled class="h-10 px-4 bg-white border border-border text-muted-foreground hover:text-red-600 hover:border-red-200 text-sm font-medium rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
                             <i class="far fa-file-pdf"></i> Unduh PDF
                         </button>
-                        <!-- <button onclick="exportSlipPDFBulk()" id="btnPrintSlipBulk" disabled class="h-10 px-4 bg-white border border-border text-muted-foreground hover:text-red-600 hover:border-red-200 text-sm font-medium rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                        <button onclick="exportSlipPDFBulk()" id="btnPrintSlipBulk" disabled class="h-10 px-4 bg-white border border-border text-muted-foreground hover:text-red-600 hover:border-red-200 text-sm font-medium rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
                             <i class="fas fa-print"></i> Print PDF Bulk
-                        </button> -->
+                        </button>
                         
 <button onclick="printBulkSlip()" id="btnPrintBulkSlip" disabled class="h-10 px-4 bg-white border border-border text-muted-foreground hover:text-blue-600 hover:border-blue-200 text-sm font-medium rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
 <i class="fas fa-print"></i> TTD SUMPAH
 </button>
 
-<!-- <button onclick="sendSidangTextToWA()" id="btnSendWA" disabled class="h-10 px-4 bg-white border border-border text-muted-foreground hover:text-green-600 hover:border-green-200 text-sm font-medium rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+<button onclick="sendSidangTextToWA()" id="btnSendWA" disabled class="h-10 px-4 bg-white border border-border text-muted-foreground hover:text-green-600 hover:border-green-200 text-sm font-medium rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
                             <i class="fab fa-whatsapp"></i> Kirim Laporan ke WA
-                        </button> -->
+                        </button>
                     </div>
                 </div>
             </div>
@@ -659,7 +659,7 @@
                 drawSlip(item, index % 2);
             });
 
-            doc.save(`TTD SUMPAH ${dateInput}.pdf`);
+            doc.save(`Slip_Penjaga_Sidang_${dateInput}.pdf`);
         }
 
         
