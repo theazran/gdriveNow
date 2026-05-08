@@ -219,9 +219,17 @@
                         <button onclick="exportPDF()" id="btnExportPDF" disabled class="h-10 px-4 bg-white border border-border text-muted-foreground hover:text-red-600 hover:border-red-200 text-sm font-medium rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
                             <i class="far fa-file-pdf"></i> Unduh PDF
                         </button>
-                        <button onclick="sendSidangTextToWA()" id="btnSendWA" disabled class="h-10 px-4 bg-white border border-border text-muted-foreground hover:text-green-600 hover:border-green-200 text-sm font-medium rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                        <!-- <button onclick="exportSlipPDFBulk()" id="btnPrintSlipBulk" disabled class="h-10 px-4 bg-white border border-border text-muted-foreground hover:text-red-600 hover:border-red-200 text-sm font-medium rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                            <i class="fas fa-print"></i> Print PDF Bulk
+                        </button> -->
+                        
+<button onclick="printBulkSlip()" id="btnPrintBulkSlip" disabled class="h-10 px-4 bg-white border border-border text-muted-foreground hover:text-blue-600 hover:border-blue-200 text-sm font-medium rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+<i class="fas fa-print"></i> TTD SUMPAH
+</button>
+
+<!-- <button onclick="sendSidangTextToWA()" id="btnSendWA" disabled class="h-10 px-4 bg-white border border-border text-muted-foreground hover:text-green-600 hover:border-green-200 text-sm font-medium rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
                             <i class="fab fa-whatsapp"></i> Kirim Laporan ke WA
-                        </button>
+                        </button> -->
                     </div>
                 </div>
             </div>
@@ -427,6 +435,40 @@
             return text.trim();
         };
 
+
+        const normalizeText = (str) => cleanHTML(str).toLowerCase().replace(/\s+/g, ' ').trim();
+
+        const isPdtPAgendaSlip = (agenda) => {
+            const text = normalizeText(agenda);
+            return ['sidang pertama', 'sidang pembacaan permohonan', 'pembacaan permohonan'].some(a => text.includes(a));
+        };
+
+        const isSaksiAgenda = (agenda) => normalizeText(agenda).includes('saksi');
+
+        const isELitigasiRoom = (ruang) => normalizeText(ruang) === 'sidang e-litigasi';
+
+        const getFirstHakim = (namaHakim) => {
+            const hakim = cleanHTML(namaHakim);
+            if (!hakim || hakim === '-') return '-';
+            const first = hakim.split('\n').map(x => x.trim()).filter(Boolean)[0] || hakim;
+            return first.replace(/^\d+[\).\-\s]*/, '').trim();
+        };
+
+        const getEligibleSlipData = () => {
+            if (currentKategori !== 'perdata' || !Array.isArray(currentSidangData)) return [];
+            return currentSidangData.filter(item => {
+                const noPerkara = item.noPerkara || '';
+                const agenda = item.agendaSidang || '';
+                const ruang = item.ruangSidang || '';
+                const isPdtP = noPerkara.includes('/Pdt.P/');
+                const isPdtG = noPerkara.includes('/Pdt.G/');
+
+                if (isPdtP && (isPdtPAgendaSlip(agenda) || !isELitigasiRoom(ruang))) return true;
+                if (isPdtG && isSaksiAgenda(agenda)) return true;
+                return false;
+            });
+        };
+
         async function fetchJadwalSidang() {
             const date = document.getElementById('tanggalSidang').value;
             const category = document.getElementById('sidangKategori').value;
@@ -437,6 +479,7 @@
             const headerRow = document.getElementById('tabel-header-row');
             const btnPdf = document.getElementById('btnExportPDF');
             const btnWa = document.getElementById('btnSendWA');
+            const btnSlipBulk = document.getElementById('btnPrintSlipBulk');
 
             if (!date) return Swal.fire({icon:'warning', text:'Pilih tanggal terlebih dahulu.'});
 
@@ -445,6 +488,7 @@
             loader.classList.remove('hidden');
             btnPdf.disabled = true;
             btnWa.disabled = true;
+            btnSlipBulk.disabled = true;
             currentKategori = category;
 
             try {
@@ -485,6 +529,8 @@
                     });
                     btnPdf.disabled = false;
                     btnWa.disabled = false;
+                    document.getElementById('btnPrintBulkSlip').disabled = false;
+                    btnSlipBulk.disabled = getEligibleSlipData().length === 0;
                 }
                 loader.classList.add('hidden');
                 results.classList.remove('hidden');
@@ -554,6 +600,207 @@
             const { doc, fileName } = createSidangPDFDoc();
             doc.save(fileName + '.pdf');
         }
+
+
+        function exportSlipPDFBulk() {
+            const slips = getEligibleSlipData();
+            if(slips.length === 0) return Swal.fire({icon:'info', text:'Tidak ada perkara yang memenuhi syarat untuk slip.'});
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('portrait', 'mm', 'a4');
+            const dateInput = document.getElementById('tanggalSidang').value;
+            const dateObj = new Date(dateInput);
+            const formattedDate = dateObj.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const halfHeight = pageHeight / 2;
+            const marginX = 18;
+            const lineGap = 7;
+
+            const drawSlip = (item, slotIndex) => {
+                const top = slotIndex === 0 ? 14 : halfHeight + 14;
+                const bottom = slotIndex === 0 ? halfHeight - 10 : pageHeight - 10;
+                const noPerkara = cleanHTML(item.noPerkara);
+                const pemohon = cleanHTML(item.pihak1);
+                const isPdtG = (item.noPerkara || '').includes('/Pdt.G/');
+                const hakim = isPdtG ? getFirstHakim(item.namaHakim) : cleanHTML(item.namaHakim);
+                let y = top;
+
+                doc.setFont('times', 'normal');
+                doc.setFontSize(12);
+                doc.text(`Saya penjaga sidang, ${formattedDate}`, marginX, y);
+                y += lineGap + 2;
+                doc.text('nomor perkara:', marginX, y);
+                doc.text(noPerkara, marginX + 38, y);
+                y += lineGap;
+                doc.text('nama pemohon:', marginX, y);
+                const pemohonLines = doc.splitTextToSize(pemohon, pageWidth - marginX * 2 - 38);
+                doc.text(pemohonLines, marginX + 38, y);
+                y += Math.max(lineGap, pemohonLines.length * 5.5) + 8;
+                doc.text('demikian...', marginX, y);
+
+                const signatureY = Math.min(bottom - 22, y + 24);
+                doc.text('Hakim', marginX + 18, signatureY);
+                doc.text('Penjaga Sidang', pageWidth - marginX - 48, signatureY);
+
+                const hakimLines = doc.splitTextToSize(hakim, 72);
+                doc.text(hakimLines, marginX, signatureY + 24);
+
+                if (slotIndex === 0) {
+                    doc.setDrawColor(180);
+                    doc.setLineDashPattern([2, 2], 0);
+                    doc.line(marginX, halfHeight, pageWidth - marginX, halfHeight);
+                    doc.setLineDashPattern([], 0);
+                }
+            };
+
+            slips.forEach((item, index) => {
+                if(index > 0 && index % 2 === 0) doc.addPage();
+                drawSlip(item, index % 2);
+            });
+
+            doc.save(`TTD SUMPAH ${dateInput}.pdf`);
+        }
+
+        
+
+function printBulkSlip() {
+    if(currentSidangData.length === 0) return;
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'legal');
+
+    const tanggalInput = document.getElementById('tanggalSidang').value;
+    const d = new Date(tanggalInput);
+
+    const hari = d.toLocaleDateString('id-ID', { weekday: 'long' });
+    const tgl = d.getDate();
+    const bulan = d.toLocaleDateString('id-ID', { month: 'long' });
+    const tahun = d.getFullYear();
+
+    let filtered = currentSidangData.filter(item => {
+        const no = (item.noPerkara || '').toLowerCase();
+        const agenda = (item.agendaSidang || '').toLowerCase();
+        const ruang = (item.ruangSidang || '').toLowerCase();
+
+        const isPermohonan =
+            no.includes('/pdt.p/') &&
+            (
+                agenda.includes('sidang pertama') ||
+                agenda.includes('sidang pembacaan permohonan') ||
+                agenda.includes('pembacaan permohonan')
+            ) &&
+            !ruang.includes('e-litigasi');
+
+        const isSaksi =
+            no.includes('/pdt.g/') &&
+            agenda.includes('saksi');
+
+        return isPermohonan || isSaksi;
+    });
+
+    const firstPdtG = filtered.find(item => (item.noPerkara || '').toLowerCase().includes('/pdt.g/'));
+    filtered = filtered.filter(item => !(item.noPerkara || '').toLowerCase().includes('/pdt.g/'));
+    if(firstPdtG) filtered.push(firstPdtG);
+
+    if(filtered.length === 0) {
+        Swal.fire({
+            icon:'info',
+            title:'Tidak ada data',
+            text:'Tidak ditemukan perkara sesuai kriteria slip.'
+        });
+        return;
+    }
+
+    const ketuaMajelis = (namaHakim) => {
+        const cleaned = cleanHTML(namaHakim || '-')
+            .split('\n')
+            .map(x => x.replace(/^\d+[\).\-\s]*/, '').trim())
+            .filter(Boolean);
+        return cleaned[0] || '-';
+    };
+
+    const fitText = (text, maxWidth) => {
+        doc.setFontSize(12);
+        let value = String(text || '-');
+        while (doc.getTextWidth(value) > maxWidth && value.length > 4) {
+            value = value.slice(0, -2);
+        }
+        if (value !== String(text || '-') && value.length > 3) value = value.slice(0, -3) + '...';
+        return value;
+    };
+
+    filtered.forEach((item, index) => {
+        if(index > 0 && index % 2 === 0) doc.addPage();
+
+        const top = (index % 2 === 0) ? 10 : 184;
+        const left = 12;
+        let yy = top;
+
+        const hakim = ketuaMajelis(item.namaHakim);
+        const pihak1 = cleanHTML(item.pihak1 || '-').split('\n')[0];
+        const pihak2 = cleanHTML(item.pihak2 || '-').split('\n')[0];
+
+        doc.setFont('helvetica','bold');
+        doc.setFontSize(12);
+        doc.text('PERNYATAAN PELAKSANAAN SUMPAH / PENERJEMAHAN SAKSI DALAM', 105, yy + 6, {align:'center'});
+        doc.text('PERSIDANGAN', 105, yy + 12, {align:'center'});
+
+        doc.setFont('helvetica','normal');
+        doc.setFontSize(12);
+        yy += 25;
+
+        doc.text(`Pada hari ini, ${hari}, tanggal ${tgl} bulan ${bulan} tahun ${tahun}.`, left, yy);
+
+        yy += 11;
+        const pembuka = 'Saya, ........................................ Penjaga Sidang pada Pengadilan Negeri Bulukumba dengan ini telah melaksanakan tugas untuk melakukan penyumpahan / penerjemahan terhadap saksi-saksi dalam perkara sebagai berikut:';
+        doc.text(doc.splitTextToSize(pembuka, 180), left, yy);
+
+        yy += 21;
+        doc.text('Nomor Perkara', left, yy);
+        doc.text(':', 70, yy);
+        doc.text(fitText(item.noPerkara || '-', 118), 74, yy);
+
+        yy += 9;
+        doc.text('Nama Pemohon/Penggugat', left, yy);
+        doc.text(':', 70, yy);
+        doc.text(fitText(pihak1, 118), 74, yy);
+
+        yy += 9;
+        doc.text('Nama Termohon/Tergugat', left, yy);
+        doc.text(':', 70, yy);
+        doc.text(fitText(pihak2, 118), 74, yy);
+
+        yy += 12;
+        const penutup = 'Demikian surat pernyataan ini dibuat dan ditandatangani oleh saya sebagai Penjaga Sidang pada Pengadilan Negeri Bulukumba serta diketahui oleh Ketua Majelis Hakim/Hakim yang memimpin persidangan.';
+        doc.text(doc.splitTextToSize(penutup, 180), left, yy);
+
+        yy += 22;
+        doc.setFontSize(12);
+        doc.text('Mengetahui', 52, yy, {align:'center'});
+        doc.text('Yang Membuat Pernyataan', 150, yy, {align:'center'});
+        yy += 5;
+        doc.text('Ketua Majelis Hakim/Hakim,', 52, yy, {align:'center'});
+        doc.text('Penjaga Sidang,', 150, yy, {align:'center'});
+
+        yy += 24;
+        doc.setFont('helvetica','bold');
+        doc.setFontSize(12);
+        doc.text(fitText(hakim, 72), 52, yy, {align:'center'});
+        doc.setFont('helvetica','normal');
+        doc.text('....................................', 150, yy, {align:'center'});
+
+        if(index % 2 === 0 && index !== filtered.length - 1) {
+            doc.setLineDashPattern([1, 1], 0);
+            doc.line(10, 174, 200, 174);
+            doc.setLineDashPattern([], 0);
+        }
+    });
+
+    doc.save('Slip_Berita_Acara_Bulk.pdf');
+}
+
+
 
         // --- NEW: SEND CLEAN TEXT REPORT TO WA (Replacing Failed File Upload) ---
         async function sendSidangTextToWA() {
