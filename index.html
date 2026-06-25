@@ -128,9 +128,10 @@
         </div>
     </div>
     
+    <!-- Input File Baru (Mendukung Multiple Files) -->
     <div class="space-y-1.5">
-        <label class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Lampiran Gambar (Opsional)</label>
-        <input type="file" id="imageFile" accept="image/*" 
+        <label class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Lampiran Gambar (Opsional - Bisa Pilih Banyak)</label>
+        <input type="file" id="imageFile" accept="image/*" multiple
             class="block w-full text-sm text-slate-500 
                    file:mr-4 file:py-2.5 file:px-4 
                    file:rounded-xl file:border-0 
@@ -422,20 +423,20 @@
             }
         };
 
-       document.getElementById('kirimPesanForm').addEventListener('submit', async (e) => {
+  document.getElementById('kirimPesanForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = e.target.querySelector('button');
     const originalText = btn.innerHTML;
     
     const to = document.getElementById('penerima').value;
     const msg = document.getElementById('message').value;
-    const imageFile = document.getElementById('imageFile').files[0];
+    const imageFiles = document.getElementById('imageFile').files; // Mengambil semua file
 
     // Validasi input
     if (!to) {
         return Swal.fire({icon:'warning', title:'Lengkapi Data', text:'Pilih grup atau penerima terlebih dahulu.'});
     }
-    if (!msg && !imageFile) {
+    if (!msg && imageFiles.length === 0) {
         return Swal.fire({icon:'warning', title:'Lengkapi Data', text:'Isi pesan teks atau lampirkan gambar.'});
     }
 
@@ -443,19 +444,30 @@
     btn.innerHTML = '<span class="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"></span> Mengirim...';
 
     try {
-        if (imageFile) {
-            // Logika Kirim Gambar (multipart/form-data)
-            const formData = new FormData();
-            formData.append('userId', userId);
-            formData.append('to', to);
-            if (msg) formData.append('caption', msg);
-            formData.append('image', imageFile);
+        if (imageFiles.length > 0) {
+            // Logika Kirim Gambar Banyak (multipart/form-data)
+            for (let i = 0; i < imageFiles.length; i++) {
+                const formData = new FormData();
+                formData.append('userId', userId);
+                formData.append('to', to);
+                
+                // Tambahkan caption HANYA pada gambar pertama (index 0)
+                if (i === 0 && msg) {
+                    formData.append('caption', msg);
+                }
+                
+                formData.append('image', imageFiles[i]);
 
-            // Fetch API menangani set boundary header secara otomatis saat menggunakan FormData
-            await fetch(`${API_WA}/send-image`, { 
-                method: "POST", 
-                body: formData 
-            });
+                await fetch(`${API_WA}/send-image`, { 
+                    method: "POST", 
+                    body: formData 
+                });
+
+                // Opsional: Beri jeda 1 detik antar pengiriman agar WhatsApp/API tidak menganggapnya spam
+                if (i < imageFiles.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
         } else {
             // Logika Kirim Teks Saja (application/json)
             await fetch(`${API_WA}/send-text`, { 
