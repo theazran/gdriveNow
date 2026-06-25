@@ -423,14 +423,14 @@
             }
         };
 
-  document.getElementById('kirimPesanForm').addEventListener('submit', async (e) => {
+ document.getElementById('kirimPesanForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = e.target.querySelector('button');
     const originalText = btn.innerHTML;
     
     const to = document.getElementById('penerima').value;
     const msg = document.getElementById('message').value;
-    const imageFiles = document.getElementById('imageFile').files; // Mengambil semua file
+    const imageFiles = document.getElementById('imageFile').files; 
 
     // Validasi input
     if (!to) {
@@ -445,14 +445,14 @@
 
     try {
         if (imageFiles.length > 0) {
-            // Logika Kirim Gambar Banyak (multipart/form-data)
+            // Logika Kirim Gambar Banyak
             for (let i = 0; i < imageFiles.length; i++) {
                 const formData = new FormData();
                 formData.append('userId', userId);
                 formData.append('to', to);
                 
-                // Tambahkan caption HANYA pada gambar pertama (index 0)
-                if (i === 0 && msg) {
+                // Tambahkan caption HANYA pada gambar TERAKHIR
+                if (i === imageFiles.length - 1 && msg) {
                     formData.append('caption', msg);
                 }
                 
@@ -463,13 +463,13 @@
                     body: formData 
                 });
 
-                // Opsional: Beri jeda 1 detik antar pengiriman agar WhatsApp/API tidak menganggapnya spam
+                // Jeda 1 detik antar pengiriman
                 if (i < imageFiles.length - 1) {
                     await new Promise(resolve => setTimeout(resolve, 1000));
                 }
             }
         } else {
-            // Logika Kirim Teks Saja (application/json)
+            // Logika Kirim Teks Saja
             await fetch(`${API_WA}/send-text`, { 
                 method: "POST", 
                 headers: { "Content-Type": "application/json" }, 
