@@ -710,7 +710,7 @@
                 doc.text('Hakim', marginX + 18, signatureY);
                 doc.text('Penjaga Sidang', pageWidth - marginX - 48, signatureY);
 
-                const hakimLines = doc.splitTextToSize(hakim, 72);
+                const hakimLines = doc.splitTextToSize(hakim, 100);
                 doc.text(hakimLines, marginX, signatureY + 24);
 
                 if (slotIndex === 0) {
